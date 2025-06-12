@@ -28,4 +28,13 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.2</version> <!-- это проверенная версия, которая точно не даёт такой ошибки -->
+            </plugin>
+        </plugins>
+    </build>
 </project>
