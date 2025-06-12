@@ -3,8 +3,10 @@ package ru.practicum.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
 
@@ -12,29 +14,30 @@ import java.time.LocalDateTime;
 @Setter
 @Entity
 @Table(name = "hit")
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Hit {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    private Integer id;
+    Integer id;
 
     @Size(max = 255)
     @NotNull
     @Column(name = "app", nullable = false)
-    private String app;
+    String app;
 
     @Size(max = 255)
     @NotNull
     @Column(name = "uri", nullable = false)
-    private String uri;
+    String uri;
 
     @Size(max = 255)
     @NotNull
     @Column(name = "ip", nullable = false)
-    private String ip;
+    String ip;
 
     @NotNull
     @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+    LocalDateTime createdAt;
 
 }
