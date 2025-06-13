@@ -1,0 +1,78 @@
+CREATE TABLE IF NOT EXISTS public.users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(250) NOT NULL,
+    email VARCHAR(254) NOT NULL,
+    CONSTRAINT users_email_unique UNIQUE (email)
+);
+
+CREATE TABLE IF NOT EXISTS public.category (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS public.event (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(120) NOT NULL,
+    annotation VARCHAR(2000) NOT NULL,
+    description VARCHAR(7000),
+    state VARCHAR(32) NOT NULL,
+    event_date TIMESTAMP NOT NULL,
+    created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    published_on TIMESTAMP,
+    category_id INT NOT NULL,
+    initiator_id INT NOT NULL,
+    paid BOOLEAN DEFAULT FALSE,
+    request_moderation BOOLEAN DEFAULT TRUE,
+    participant_limit INT DEFAULT 0,
+    lat FLOAT NOT NULL,
+    lon FLOAT NOT NULL,
+    CONSTRAINT event_category_fk
+        FOREIGN KEY (category_id)
+        REFERENCES public.category(id)
+        ON DELETE RESTRICT,  -- Запрет удаления используемой категории
+    CONSTRAINT event_users_fk
+        FOREIGN KEY (initiator_id)
+        REFERENCES public.users(id)
+        ON DELETE CASCADE,  -- Удаление событий при удалении организатора
+    CONSTRAINT event_state_check
+        CHECK (state IN ('PENDING', 'PUBLISHED', 'CANCELED'))
+);
+
+CREATE TABLE IF NOT EXISTS public.compilation (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(50) NOT NULL,
+    pinned BOOLEAN DEFAULT FALSE
+);
+
+CREATE TABLE IF NOT EXISTS public.event_compilation (
+    event_id INT NOT NULL,
+    compilation_id INT NOT NULL,
+    PRIMARY KEY (event_id, compilation_id),
+    CONSTRAINT fk_event
+        FOREIGN KEY (event_id)
+        REFERENCES public.event(id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_compilation
+        FOREIGN KEY (compilation_id)
+        REFERENCES public.compilation(id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS public.participation_request (
+    id SERIAL PRIMARY KEY,
+    requester_id INT NOT NULL,
+    event_id INT NOT NULL,
+    status VARCHAR(32) NOT NULL,
+    created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT participation_request_users_fk
+        FOREIGN KEY (requester_id)
+        REFERENCES public.users(id)
+        ON DELETE CASCADE,  -- Удаление запросов при удалении пользователя
+    CONSTRAINT participation_request_event_fk
+        FOREIGN KEY (event_id)
+        REFERENCES public.event(id)
+        ON DELETE CASCADE,  -- Удаление запросов при удалении события
+    CONSTRAINT participation_status_check
+        CHECK (status IN ('PENDING', 'CONFIRMED', 'REJECTED')),
+    CONSTRAINT unique_request UNIQUE (requester_id, event_id)
+);
