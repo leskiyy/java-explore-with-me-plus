@@ -20,6 +20,6 @@ public class NewEventDto {
     Boolean paid;
     Integer participantLimit;
     Boolean requestModeration;
-    @Size(min = 3, max =  120)
+    @Size(min = 3, max = 120)
     String title;
 }

@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS public.users (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     name VARCHAR(250) NOT NULL,
     email VARCHAR(254) NOT NULL,
     CONSTRAINT users_email_unique UNIQUE (email)
@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS public.category (
 );
 
 CREATE TABLE IF NOT EXISTS public.event (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     title VARCHAR(120) NOT NULL,
     annotation VARCHAR(2000) NOT NULL,
     description VARCHAR(7000),
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS public.event (
     created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     published_on TIMESTAMP,
     category_id INT NOT NULL,
-    initiator_id INT NOT NULL,
+    initiator_id BIGINT NOT NULL,
     paid BOOLEAN DEFAULT FALSE,
     request_moderation BOOLEAN DEFAULT TRUE,
     participant_limit INT DEFAULT 0,
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS public.compilation (
 );
 
 CREATE TABLE IF NOT EXISTS public.event_compilation (
-    event_id INT NOT NULL,
+    event_id BIGINT NOT NULL,
     compilation_id INT NOT NULL,
     PRIMARY KEY (event_id, compilation_id),
     CONSTRAINT fk_event
@@ -59,9 +59,9 @@ CREATE TABLE IF NOT EXISTS public.event_compilation (
 );
 
 CREATE TABLE IF NOT EXISTS public.participation_request (
-    id SERIAL PRIMARY KEY,
-    requester_id INT NOT NULL,
-    event_id INT NOT NULL,
+    id BIGSERIAL PRIMARY KEY,
+    requester_id BIGINT NOT NULL,
+    event_id BIGINT NOT NULL,
     status VARCHAR(32) NOT NULL,
     created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT participation_request_users_fk
