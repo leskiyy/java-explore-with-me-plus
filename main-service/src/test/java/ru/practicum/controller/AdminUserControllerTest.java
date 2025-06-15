@@ -13,7 +13,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.dto.user.NewUserRequest;
 import ru.practicum.service.UserService;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
 @WebMvcTest(AdminUserController.class)
@@ -33,18 +35,32 @@ class AdminUserControllerTest {
 
     @Test
     @SneakyThrows
-    void create() {
-        String errorResponse = mvc.perform(post("/admin/users")
+    void create_whenMalformedEmail() {
+        assertThat(mvc.perform(post("/admin/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(NewUserRequest.builder()
-                                .email("")
+                                .email("123456")
                                 .name("name")
                                 .build())))
+                .andExpect(status().is(400))
                 .andReturn()
                 .getResponse()
-                .getContentAsString();
-        log.info("ANSWER : {}", errorResponse);
-//        assertThat(errorResponse).contains("errors").contains("reason").contains("status");
+                .getContentAsString()).contains("email");
+    }
+
+    @Test
+    @SneakyThrows
+    void create_whenMalformedName() {
+        assertThat(mvc.perform(post("/admin/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(NewUserRequest.builder()
+                                .email("123@gmail.com")
+                                .name("   ")
+                                .build())))
+                .andExpect(status().is(400))
+                .andReturn()
+                .getResponse()
+                .getContentAsString()).contains("name").contains("blank");
     }
 
     @Test
