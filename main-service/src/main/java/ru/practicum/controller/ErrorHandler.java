@@ -1,6 +1,7 @@
 package ru.practicum.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -31,8 +32,8 @@ public class ErrorHandler {
                 .build());
     }
 
-    @ExceptionHandler
-    public ResponseEntity<ApiError> handleConflictException(ConflictException e) {
+    @ExceptionHandler({DataIntegrityViolationException.class, ConflictException.class})
+    public ResponseEntity<ApiError> handleConflictException(Exception e) {
         log.info("409 {}", e.getMessage());
         String conflictReason = "Integrity constraint has been violated.";
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiError.builder()

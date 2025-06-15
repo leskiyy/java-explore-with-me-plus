@@ -23,7 +23,6 @@ public class UserService {
 
     @Transactional(readOnly = false)
     public UserDto create(NewUserRequest user) {
-        User entity = mapper.toEntity(user);
         User saved = userRepository.save(mapper.toEntity(user));
         return mapper.toDto(saved);
     }

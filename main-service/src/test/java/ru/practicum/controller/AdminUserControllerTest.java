@@ -11,10 +11,14 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.dto.user.NewUserRequest;
+import ru.practicum.dto.user.UserDto;
 import ru.practicum.service.UserService;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
@@ -31,17 +35,55 @@ class AdminUserControllerTest {
     @Test
     @SneakyThrows
     void getUsers() {
+        List<UserDto> expected = List.of(new UserDto());
+
+        when(service.getUsers(null, 0, 10)).thenReturn(expected);
+
+        String contentAsString = mvc.perform(get("/admin/users"))
+                .andExpect(status().is(200))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        assertThat(contentAsString).isEqualTo(objectMapper.writeValueAsString(expected));
+    }
+
+    @Test
+    @SneakyThrows
+    void create_whenOK() {
+        NewUserRequest income = NewUserRequest.builder()
+                .email("email@gmail.com")
+                .name("name")
+                .build();
+
+        UserDto expected = UserDto.builder()
+                .id(1L)
+                .name("expected")
+                .build();
+
+        when(service.create(income)).thenReturn(expected);
+
+        String contentAsString = mvc.perform(post("/admin/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(income)))
+                .andExpect(status().is(201))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        assertThat(contentAsString).isEqualTo(objectMapper.writeValueAsString(expected));
     }
 
     @Test
     @SneakyThrows
     void create_whenMalformedEmail() {
+        NewUserRequest income = NewUserRequest.builder()
+                .email("123456")
+                .name("name")
+                .build();
         assertThat(mvc.perform(post("/admin/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(NewUserRequest.builder()
-                                .email("123456")
-                                .name("name")
-                                .build())))
+                        .content(objectMapper.writeValueAsString(income)))
                 .andExpect(status().is(400))
                 .andReturn()
                 .getResponse()
@@ -51,12 +93,14 @@ class AdminUserControllerTest {
     @Test
     @SneakyThrows
     void create_whenMalformedName() {
+        NewUserRequest income = NewUserRequest.builder()
+                .email("123@gmail.com")
+                .name("   ")
+                .build();
+
         assertThat(mvc.perform(post("/admin/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(NewUserRequest.builder()
-                                .email("123@gmail.com")
-                                .name("   ")
-                                .build())))
+                        .content(objectMapper.writeValueAsString(income)))
                 .andExpect(status().is(400))
                 .andReturn()
                 .getResponse()
@@ -64,6 +108,10 @@ class AdminUserControllerTest {
     }
 
     @Test
-    void delete() {
+    @SneakyThrows
+    void deleteUserById() {
+        long userId = 1L;
+        mvc.perform(delete("/admin/users/{userId}", userId))
+                .andExpect(status().is(204));
     }
 }
