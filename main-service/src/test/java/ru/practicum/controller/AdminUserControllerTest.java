@@ -17,7 +17,7 @@ import ru.practicum.service.UserService;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -45,6 +45,8 @@ class AdminUserControllerTest {
                 .getResponse()
                 .getContentAsString();
 
+        verify(service, times(1)).getUsers(null, 0, 10);
+        verifyNoMoreInteractions(service);
         assertThat(contentAsString).isEqualTo(objectMapper.writeValueAsString(expected));
     }
 
@@ -71,6 +73,8 @@ class AdminUserControllerTest {
                 .getResponse()
                 .getContentAsString();
 
+        verify(service, times(1)).create(income);
+        verifyNoMoreInteractions(service);
         assertThat(contentAsString).isEqualTo(objectMapper.writeValueAsString(expected));
     }
 
