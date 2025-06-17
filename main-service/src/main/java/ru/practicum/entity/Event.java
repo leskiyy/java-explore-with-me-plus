@@ -34,7 +34,6 @@ public class Event {
     @Column(name = "description", length = 7000)
     private String description;
 
-    @Size(max = 32)
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "state", nullable = false, length = 32)

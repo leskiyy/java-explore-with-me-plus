@@ -48,7 +48,10 @@ public class EventController {
                 .timestamp(timestamp)
                 .build());
 
-        List<EventShortDto> events = eventService.searchEvents(text, categories, paid, start, end, sort, from, size);
+        List<Long> categoriesParam = (categories == null || categories.isEmpty()) ? null : categories;
+
+        List<EventShortDto> events = eventService.searchEvents(text, categoriesParam, paid, start, end, sort, from, size);
+
         log.info("Returned {} events for GET /events", events.size());
         return events;
     }

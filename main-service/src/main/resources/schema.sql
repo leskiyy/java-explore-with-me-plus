@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS public.users (
 );
 
 CREATE TABLE IF NOT EXISTS public.category (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL UNIQUE
 );
 
@@ -19,13 +19,13 @@ CREATE TABLE IF NOT EXISTS public.event (
     event_date TIMESTAMP NOT NULL,
     created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     published_on TIMESTAMP,
-    category_id INT NOT NULL,
+    category_id BIGINT NOT NULL,
     initiator_id BIGINT NOT NULL,
     paid BOOLEAN DEFAULT FALSE,
     request_moderation BOOLEAN DEFAULT TRUE,
     participant_limit INT DEFAULT 0,
-    lat FLOAT NOT NULL,
-    lon FLOAT NOT NULL,
+    lat DOUBLE PRECISION NOT NULL,
+    lon DOUBLE PRECISION NOT NULL,
     CONSTRAINT event_category_fk
         FOREIGN KEY (category_id)
         REFERENCES public.category(id)
@@ -39,14 +39,14 @@ CREATE TABLE IF NOT EXISTS public.event (
 );
 
 CREATE TABLE IF NOT EXISTS public.compilation (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     title VARCHAR(50) NOT NULL,
     pinned BOOLEAN DEFAULT FALSE
 );
 
 CREATE TABLE IF NOT EXISTS public.event_compilation (
     event_id BIGINT NOT NULL,
-    compilation_id INT NOT NULL,
+    compilation_id BIGINT NOT NULL,
     PRIMARY KEY (event_id, compilation_id),
     CONSTRAINT fk_event
         FOREIGN KEY (event_id)

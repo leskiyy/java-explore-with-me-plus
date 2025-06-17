@@ -19,6 +19,8 @@ SELECT SETVAL('category_id_seq', (SELECT MAX(id) FROM category));
 
 
 INSERT INTO event (id, title, annotation, state, event_date, category_id, initiator_id, lat, lon)
-VALUES (1, 'title1', 'annotation1', 'PENDING', '2099-01-01 00:00:00', 1, 1, 0.1, 0.1);
+VALUES
+  (1, 'title1', 'annotation1', 'PENDING', '2099-01-01 00:00:00', 1, 1, 0.1, 0.1),
+  (2, 'Событие', 'Описание события', 'PUBLISHED', '2099-01-02 12:00:00', 1, 1, 0.2, 0.2);
 SELECT SETVAL('event_id_seq', (SELECT MAX(id) FROM event));
 

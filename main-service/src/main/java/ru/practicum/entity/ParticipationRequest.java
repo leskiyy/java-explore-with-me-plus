@@ -32,7 +32,6 @@ public class ParticipationRequest {
     @JoinColumn(name = "event_id", nullable = false)
     private Event event;
 
-    @Size(max = 32)
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 32)
