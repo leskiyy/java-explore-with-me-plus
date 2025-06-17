@@ -2,6 +2,8 @@ package ru.practicum.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.category.CategoryDto;
 import ru.practicum.dto.category.NewCategoryDto;
 import ru.practicum.entity.Category;
@@ -11,6 +13,7 @@ import ru.practicum.repository.CategoryRepository;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(isolation = Isolation.REPEATABLE_READ)
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
@@ -22,19 +25,17 @@ public class CategoryService {
     }
 
     public void deleteCategory(Integer catId) {
-        if (!categoryRepository.existsById(catId)) {
-            throw new NotFoundException("Category with id=" + catId + " was not found");
-        }
-        categoryRepository.deleteById(catId);
+        Category category = categoryRepository.findById(catId)
+                .orElseThrow(() -> new NotFoundException("Category with id=" + catId + " was not found"));
+        categoryRepository.delete(category);
         categoryRepository.flush();
     }
 
-
     public CategoryDto update(CategoryDto dto) {
-        if (!categoryRepository.existsById(dto.getId())) {
-            throw new NotFoundException("Category with id=" + dto.getId() + " was not found");
-        }
-        Category updated = categoryRepository.saveAndFlush(mapper.toEntity(dto));
-        return mapper.toDto(updated);
+        Category category = categoryRepository.findById(dto.getId())
+                .orElseThrow(() -> new NotFoundException("Category with id=" + dto.getId() + " was not found"));
+        category.setName(dto.getName());
+        categoryRepository.saveAndFlush(category);
+        return mapper.toDto(category);
     }
 }
