@@ -11,7 +11,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @Builder
 public class CategoryDto {
-    Integer id;
+    Long id;
     @NotBlank
     @Size(min = 1, max = 50)
     String name;

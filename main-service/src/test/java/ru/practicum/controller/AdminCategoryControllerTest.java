@@ -40,7 +40,7 @@ class AdminCategoryControllerTest {
         assertThat(objectMapper.writeValueAsString(dto)).contains("cat");
         CategoryDto expected = CategoryDto.builder()
                 .name("cat")
-                .id(1)
+                .id(1L)
                 .build();
 
         when(service.save(dto)).thenReturn(expected);
@@ -82,7 +82,7 @@ class AdminCategoryControllerTest {
     @Test
     @SneakyThrows
     void updateCategory() {
-        Integer catId = 1;
+        Long catId = 1L;
         CategoryDto dto = CategoryDto.builder()
                 .name("cat")
                 .build();
@@ -94,7 +94,7 @@ class AdminCategoryControllerTest {
 
         CategoryDto expected = CategoryDto.builder()
                 .name("cat")
-                .id(1)
+                .id(1L)
                 .build();
 
         when(service.update(invoked)).thenReturn(expected);

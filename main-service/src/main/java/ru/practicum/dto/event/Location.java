@@ -1,12 +1,14 @@
 package ru.practicum.dto.event;
 
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
 @Data
+@Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Location {
-    Float lat;
-    Float lon;
+    Double lat;
+    Double lon;
 }
