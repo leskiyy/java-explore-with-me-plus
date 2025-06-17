@@ -8,7 +8,7 @@ import ru.practicum.dto.event.Location;
 import ru.practicum.dto.user.UserShortDto;
 import ru.practicum.entity.Category;
 import ru.practicum.entity.Event;
-import ru.practicum.entity.User;;
+import ru.practicum.entity.User;
 
 @Component
 public class EventMapper {
