@@ -1,6 +1,9 @@
 package ru.practicum.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import ru.practicum.client.StatsClient;
 import ru.practicum.dto.StatsDto;
@@ -19,6 +22,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import ru.practicum.controller.PrivateEventController;
+import ru.practicum.dto.event.EventShortDto;
+import ru.practicum.entity.Event;
+import ru.practicum.mapper.EventMapper;
+import ru.practicum.repository.EventRepository;
+import ru.practicum.specification.EventSpecifications;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -26,8 +37,15 @@ public class EventService {
 
     private final EventRepository eventRepository;
     private final EventMapper eventMapper;
+
+
     private final StatsClient statsClient;
     private final ParticipationRequestRepository requestRepository;
+
+    public List<EventShortDto> getUsersEvents(PrivateEventController.EventUserSearchParam params) {
+        Page<Event> events = eventRepository.findByInitiator_Id(params.getUserId(), params.getPageable());
+        events.stream().map()
+    }
 
     public List<EventShortDto> searchEvents(String text, List<Long> categories, Boolean paid, LocalDateTime start,
                                             LocalDateTime end, String sort, int from, int size) {
