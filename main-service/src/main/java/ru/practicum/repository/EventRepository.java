@@ -32,7 +32,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, JpaSpecific
             @Param("state") EventState state
     );
 
-    Page<Event> findByInitiator_Id(Long id, Pageable pageable);
+    Page<Event> findByInitiatorId(Long id, Pageable pageable);
 
     Optional<Event> findByIdAndState(Long id, EventState state);
 }

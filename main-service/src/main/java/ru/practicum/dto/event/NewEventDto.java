@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 public class NewEventDto {
     @Size(min = 20, max = 2000)
     String annotation;
-    Long category;
+    Integer category;
     @Size(min = 20, max = 7000)
     String description;
     LocalDateTime eventDate;

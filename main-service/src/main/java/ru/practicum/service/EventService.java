@@ -1,7 +1,6 @@
 package ru.practicum.service;
 
 import lombok.RequiredArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -22,31 +21,73 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import ru.practicum.controller.PrivateEventController;
+import ru.practicum.client.StatsClient;
+import ru.practicum.dto.StatsDto;
+import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.entity.Event;
 import ru.practicum.mapper.EventMapper;
 import ru.practicum.repository.EventRepository;
 import ru.practicum.specification.EventSpecifications;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+
+import static java.util.stream.Collectors.toMap;
 
 @Service
 @RequiredArgsConstructor
 public class EventService {
 
     private final EventRepository eventRepository;
+    private final ParticipationRequestRepository requestRepository;
+    private final StatsClient client;
     private final EventMapper eventMapper;
 
+    public List<EventShortDto> getUsersEvents(EventUserSearchParam params) {
+        Page<Event> events = eventRepository.findByInitiatorId(params.getUserId(), params.getPageable());
 
-    private final StatsClient statsClient;
-    private final ParticipationRequestRepository requestRepository;
+        List<Long> eventIds = events.stream().map(Event::getId).toList();
+        LocalDateTime earliestDate = events.stream().map(Event::getCreatedOn).min(Comparator.naturalOrder()).orElseThrow();
+        Map<Long, Integer> views = getViews(eventIds, earliestDate);
+        Map<Long, Long> confirmedRequests = requestRepository.countRequestsByIdsAndStatus(eventIds,
+                RequestStatus.CONFIRMED);
 
-    public List<EventShortDto> getUsersEvents(PrivateEventController.EventUserSearchParam params) {
-        Page<Event> events = eventRepository.findByInitiator_Id(params.getUserId(), params.getPageable());
-        events.stream().map()
+        List<EventShortDto> result = events.stream()
+                .map(eventMapper::toShortDto)
+                .toList();
+        result.forEach(event -> {
+            event.setViews(views.get(event.getId()));
+            event.setConfirmedRequests(confirmedRequests.get(event.getId()));
+        });
+        return result;
+
     }
 
+    public EventFullDto saveEvent(NewEventDto dto, Long userId) {
+        Event saved = eventRepository.saveAndFlush(eventMapper.toEntity(dto, userId));
+        EventFullDto fullDto = eventMapper.toFullDto(saved);
+        fullDto.setViews(0);
+        fullDto.setConfirmedRequests(0L);
+        return fullDto;
+    }
+
+    /**
+     * Getting stats from stats client
+     */
+    private Map<Long, Integer> getViews(List<Long> eventIds, LocalDateTime earliestDate) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        List<StatsDto> stats = client.getStats(earliestDate.format(formatter),
+                LocalDateTime.now().format(formatter),
+                eventIds.stream().map(id -> "/events/" + id).toList(),
+                false);
+        return stats.stream()
+                .collect(toMap(statDto ->
+                        Long.parseLong(statDto.getUri().split("/")[2]), StatsDto::getHits));
+    }
     public List<EventShortDto> searchEvents(String text, List<Long> categories, Boolean paid, LocalDateTime start,
                                             LocalDateTime end, String sort, int from, int size) {
 
