@@ -15,17 +15,19 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(isolation = Isolation.REPEATABLE_READ)
+@Transactional(readOnly = true)
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final CategoryMapper mapper;
 
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public CategoryDto save(NewCategoryDto dto) {
         Category saved = categoryRepository.save(mapper.toEntity(dto));
         return mapper.toDto(saved);
     }
 
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public void deleteCategory(Long catId) {
         Category category = categoryRepository.findById(catId)
                 .orElseThrow(() -> new NotFoundException("Category with id=" + catId + " was not found"));
@@ -33,6 +35,7 @@ public class CategoryService {
         categoryRepository.flush();
     }
 
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public CategoryDto update(CategoryDto dto) {
         Category category = categoryRepository.findById(dto.getId())
                 .orElseThrow(() -> new NotFoundException("Category with id=" + dto.getId() + " was not found"));

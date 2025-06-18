@@ -9,8 +9,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.client.StatsClient;
 import ru.practicum.controller.publicAPI.EventController;
 import ru.practicum.dto.category.CategoryDto;
-import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.dto.event.EventFullDto;
+import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.dto.event.Location;
 import ru.practicum.dto.user.UserShortDto;
 import ru.practicum.entity.EventState;
@@ -22,8 +22,8 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(EventController.class)
@@ -86,7 +86,7 @@ public class EventControllerTest {
                 .description("Подробное описание")
                 .participantLimit(100)
                 .state(EventState.PUBLISHED)
-                .createdOn("2025-01-01 00:00:00")
+                .createdOn(LocalDateTime.of(2025, 1, 1, 0, 0, 0))
                 .publishedOn(LocalDateTime.now())
                 .location(Location.builder().lat(1.0).lon(2.0).build())
                 .requestModeration(true)

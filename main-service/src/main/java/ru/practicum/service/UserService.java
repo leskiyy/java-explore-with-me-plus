@@ -21,7 +21,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserMapper mapper;
 
-    @Transactional(readOnly = false)
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public UserDto create(NewUserRequest user) {
         User saved = userRepository.save(mapper.toEntity(user));
         return mapper.toDto(saved);

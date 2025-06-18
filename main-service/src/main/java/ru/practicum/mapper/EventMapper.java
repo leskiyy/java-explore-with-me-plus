@@ -3,11 +3,8 @@ package ru.practicum.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
-import org.springframework.beans.factory.annotation.Autowired;
-import ru.practicum.client.StatsClient;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventShortDto;
-import ru.practicum.dto.event.Location;
 import ru.practicum.dto.event.NewEventDto;
 import ru.practicum.entity.Event;
 

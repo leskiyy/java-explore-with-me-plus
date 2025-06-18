@@ -1,4 +1,5 @@
 package ru.practicum.controller;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -12,7 +13,8 @@ import java.util.List;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(CompilationController.class)
 class CompilationControllerTest {
@@ -53,7 +55,7 @@ class CompilationControllerTest {
 
         mockMvc.perform(get("/compilations/{compId}", compId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value((int)compId))
+                .andExpect(jsonPath("$.id").value((int) compId))
                 .andExpect(jsonPath("$.title").value("Holiday Selection"));
 
         verify(compilationService, times(1)).getCompilationById(compId);

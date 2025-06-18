@@ -7,15 +7,15 @@ import ru.practicum.entity.RequestStatus;
 
 import java.util.List;
 import java.util.Map;
-import ru.practicum.entity.RequestStatus;
 
-public interface ParticipationRequestRepository extends JpaRepository<ParticipationRequest, Integer> {
+public interface ParticipationRequestRepository extends JpaRepository<ParticipationRequest, Long> {
     @Query("""
             select r.event.id, count(r.id)
             from ParticipationRequest r
             where r.event.id in ?1 and r.status = ?2
             group by r.event.id""")
-    Map<Long, Long> countRequestsByIdsAndStatus(List<Long> ids, RequestStatus status);
+    Map<Long, Long> countRequestsByEventIdsAndStatus(List<Long> ids, RequestStatus status);
 
-    long countByEventIdAndStatus(Long eventId, RequestStatus status);
+    List<ParticipationRequest> findAllByRequesterIdAndEventId(Long requesterId, Long eventId);
+
 }
