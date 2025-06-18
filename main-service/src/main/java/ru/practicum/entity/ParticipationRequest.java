@@ -2,7 +2,6 @@ package ru.practicum.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
@@ -18,7 +17,7 @@ public class ParticipationRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    private Integer id;
+    private Long id;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -32,7 +31,6 @@ public class ParticipationRequest {
     @JoinColumn(name = "event_id", nullable = false)
     private Event event;
 
-    @Size(max = 32)
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 32)

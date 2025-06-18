@@ -52,7 +52,7 @@ class CategoryServiceIntegrationTest extends IntegrationTestBase {
 
     @Test
     void deleteCategory_whenOk() {
-        Integer catId = 3;
+        Long catId = 3L;
         service.deleteCategory(catId);
 
         Category category = entityManager.find(Category.class, catId);
@@ -61,21 +61,21 @@ class CategoryServiceIntegrationTest extends IntegrationTestBase {
 
     @Test
     void deleteCategory_whenNotFound() {
-        Integer catId = 999;
+        Long catId = 999L;
 
         assertThatThrownBy(() -> service.deleteCategory(catId)).isInstanceOf(NotFoundException.class);
     }
 
     @Test
     void deleteCategory_whenEventHasCategory() {
-        Integer catId = 1;
+        Long catId = 1L;
 
         assertThatThrownBy(() -> service.deleteCategory(catId)).isInstanceOf(DataIntegrityViolationException.class);
     }
 
     @Test
     void update_whenOk() {
-        Integer catId = 1;
+        Long catId = 1L;
         String name = "updated";
         service.update(CategoryDto.builder()
                 .name(name)
@@ -93,7 +93,7 @@ class CategoryServiceIntegrationTest extends IntegrationTestBase {
 
     @Test
     void update_whenNameIsBusy() {
-        Integer catId = 1;
+        Long catId = 1L;
         String name = "name2";
         CategoryDto build = CategoryDto.builder()
                 .name(name)
@@ -105,7 +105,7 @@ class CategoryServiceIntegrationTest extends IntegrationTestBase {
 
     @Test
     void update_whenNotFound() {
-        Integer catId = 999;
+        Long catId = 999L;
         String name = "999";
         CategoryDto build = CategoryDto.builder()
                 .name(name)
