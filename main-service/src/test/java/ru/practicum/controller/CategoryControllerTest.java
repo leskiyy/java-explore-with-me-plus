@@ -9,14 +9,12 @@ import ru.practicum.controller.publicAPI.CategoryController;
 import ru.practicum.dto.category.CategoryDto;
 import ru.practicum.service.CategoryService;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.mockito.Mockito.*;
-
 import java.util.List;
 
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(CategoryController.class)
 public class CategoryControllerTest {
@@ -56,7 +54,7 @@ public class CategoryControllerTest {
 
         mockMvc.perform(get("/categories/{catId}", catId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value((int)catId))
+                .andExpect(jsonPath("$.id").value((int) catId))
                 .andExpect(jsonPath("$.name").value("Cinema"));
 
         verify(categoryService, times(1)).getCategoryById(catId);

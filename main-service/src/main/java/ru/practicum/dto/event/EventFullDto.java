@@ -23,7 +23,7 @@ public class EventFullDto {
     Boolean paid;
     String title;
     Long views;
-    String createdOn;
+    LocalDateTime createdOn;
     String description;
     Location location;
     Integer participantLimit;

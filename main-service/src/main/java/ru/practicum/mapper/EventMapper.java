@@ -1,72 +1,31 @@
 package ru.practicum.mapper;
 
-import org.springframework.stereotype.Component;
-import ru.practicum.dto.category.CategoryDto;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventShortDto;
-import ru.practicum.dto.event.Location;
-import ru.practicum.dto.user.UserShortDto;
-import ru.practicum.entity.Category;
+import ru.practicum.dto.event.NewEventDto;
 import ru.practicum.entity.Event;
-import ru.practicum.entity.User;
 
-@Component
-public class EventMapper {
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+public interface EventMapper {
 
-    public EventShortDto toShortDto(Event event) {
-        return EventShortDto.builder()
-                .annotation(event.getAnnotation())
-                .category(toCategoryDto(event.getCategory()))
-                .eventDate(event.getEventDate())
-                .id(event.getId())
-                .initiator(toUserShortDto(event.getInitiator()))
-                .paid(event.getPaid())
-                .title(event.getTitle())
-                .views(0L)
-                .build();
-    }
+    @Mapping(target = "views", ignore = true)
+    @Mapping(target = "confirmedRequests", ignore = true)
+    EventShortDto toShortDto(Event event);
 
-    public EventFullDto toFullDto(Event event) {
-        return EventFullDto.builder()
-                .annotation(event.getAnnotation())
-                .category(toCategoryDto(event.getCategory()))
-                .eventDate(event.getEventDate())
-                .id(event.getId())
-                .initiator(toUserShortDto(event.getInitiator()))
-                .paid(event.getPaid())
-                .title(event.getTitle())
-                .views(0L)
-                .createdOn(event.getCreatedOn() != null ? event.getCreatedOn().toString() : null)
-                .description(event.getDescription())
-                .location(toLocation(event.getLat(), event.getLon()))
-                .participantLimit(event.getParticipantLimit())
-                .publishedOn(event.getPublishedOn())
-                .requestModeration(event.getRequestModeration())
-                .state(event.getState())
-                .build();
-    }
+    @Mapping(target = "views", ignore = true)
+    @Mapping(target = "confirmedRequests", ignore = true)
+    @Mapping(target = "location.lat", source = "lat")
+    @Mapping(target = "location.lon", source = "lon")
+    EventFullDto toFullDto(Event event);
 
-    private Location toLocation(Double lat, Double lon) {
-        if (lat == null || lon == null) return null;
-        return Location.builder()
-                .lat(lat)
-                .lon(lon)
-                .build();
-    }
+    @Mapping(target = "lat", source = "dto.location.lat")
+    @Mapping(target = "lon", source = "dto.location.lon")
+    @Mapping(target = "initiator.id", source = "userId")
+    @Mapping(target = "category.id", source = "dto.category")
+    @Mapping(target = "state", expression = "java(ru.practicum.entity.EventState.PENDING)")
+    Event toEntity(NewEventDto dto, Long userId);
 
-    private CategoryDto toCategoryDto(Category category) {
-        if (category == null) return null;
-        return CategoryDto.builder()
-                .id(category.getId())
-                .name(category.getName())
-                .build();
-    }
-
-    private UserShortDto toUserShortDto(User user) {
-        if (user == null) return null;
-        return UserShortDto.builder()
-                .id(user.getId())
-                .name(user.getName())
-                .build();
-    }
 }
