@@ -17,6 +17,7 @@ import ru.practicum.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -68,7 +69,12 @@ public class ParticipationRequestService {
         ParticipationRequest request = new ParticipationRequest();
         request.setRequester(user);
         request.setEvent(event);
-        request.setStatus(event.getRequestModeration() ? RequestStatus.PENDING : RequestStatus.CONFIRMED);
+
+        if (event.getParticipantLimit() == 0) {
+            request.setStatus(RequestStatus.CONFIRMED);
+        } else {
+            request.setStatus(event.getRequestModeration() ? RequestStatus.PENDING : RequestStatus.CONFIRMED);
+        }
         request.setCreated(LocalDateTime.now());
 
         return requestMapper.toDto(requestRepository.save(request));
@@ -81,6 +87,9 @@ public class ParticipationRequestService {
         List<ParticipationRequest> requestList = requestRepository.findAllById(updateRequest.getRequestIds());
         Event event = eventRepository
                 .findById(eventId).orElseThrow(() -> new NotFoundException("There is no event id=" + eventId));
+        if (!Objects.equals(event.getInitiator().getId(), userId)) {
+            throw new ConflictException("Can't update event id=" + eventId + " requests by user id=" + userId);
+        }
         updateRequests(requestList, updateRequest.getStatus(), event);
 
         EventRequestStatusUpdateResult result = new EventRequestStatusUpdateResult();
@@ -123,16 +132,14 @@ public class ParticipationRequestService {
             requests.forEach(request -> request.setStatus(status));
             return;
         }
-
-        Long confirmedRequests = requestRepository
-                .countRequestsByEventIdsAndStatus(List.of(event.getId()), RequestStatus.CONFIRMED)
-                .get(event.getId());
+        long confirmed = requestRepository
+                .countByEventIdAndStatus(event.getId(), RequestStatus.CONFIRMED);
         for (ParticipationRequest request : requests) {
-            if (confirmedRequests >= participantLimit) {
+            if (confirmed >= participantLimit) {
                 request.setStatus(RequestStatus.REJECTED);
             } else {
                 request.setStatus(status);
-                confirmedRequests++;
+                confirmed++;
             }
         }
     }

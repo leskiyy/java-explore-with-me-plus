@@ -7,6 +7,7 @@ import ru.practicum.entity.RequestStatus;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public interface ParticipationRequestRepository extends JpaRepository<ParticipationRequest, Long> {
     @Query("""
@@ -14,7 +15,7 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
             from ParticipationRequest r
             where r.event.id in ?1 and r.status = ?2
             group by r.event.id""")
-    Map<Long, Long> countRequestsByEventIdsAndStatus(List<Long> ids, RequestStatus status);
+    List<Object[]> countRequestsByStatus(List<Long> ids, RequestStatus status);
 
     List<ParticipationRequest> findAllByRequesterIdAndEventId(Long requesterId, Long eventId);
 
@@ -22,4 +23,13 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
     long countByEventIdAndStatus(Long eventId, RequestStatus status);
 
     List<ParticipationRequest> findAllByRequesterId(Long userId);
+
+    default Map<Long, Long> countRequestsByEventIdsAndStatus(List<Long> ids, RequestStatus status) {
+        List<Object[]> result = countRequestsByStatus(ids, status);
+        return result.stream()
+                .collect(Collectors.toMap(
+                        arr -> (Long) arr[0],
+                        arr -> (Long) arr[1]
+                ));
+    }
 }

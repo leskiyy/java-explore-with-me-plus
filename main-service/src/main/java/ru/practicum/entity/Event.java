@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CurrentTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -44,6 +45,7 @@ public class Event {
     private LocalDateTime eventDate;
 
     @Column(name = "created_on")
+    @CurrentTimestamp
     private LocalDateTime createdOn;
 
     @Column(name = "published_on")
