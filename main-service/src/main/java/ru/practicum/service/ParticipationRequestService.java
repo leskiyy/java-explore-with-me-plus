@@ -7,15 +7,15 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.request.EventRequestStatusUpdateRequest;
 import ru.practicum.dto.request.EventRequestStatusUpdateResult;
 import ru.practicum.dto.request.ParticipationRequestDto;
-import ru.practicum.entity.Event;
-import ru.practicum.entity.ParticipationRequest;
-import ru.practicum.entity.RequestStatus;
+import ru.practicum.entity.*;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.mapper.ParticipationRequestMapper;
 import ru.practicum.repository.EventRepository;
 import ru.practicum.repository.ParticipationRequestRepository;
+import ru.practicum.repository.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -25,6 +25,8 @@ public class ParticipationRequestService {
 
     private final ParticipationRequestRepository requestRepository;
     private final EventRepository eventRepository;
+    private final UserRepository userRepository;
+
     private final ParticipationRequestMapper requestMapper;
 
     public List<ParticipationRequestDto> getRequestForEventByUserId(Long eventId, Long userId) {
@@ -32,6 +34,44 @@ public class ParticipationRequestService {
         return requests.stream()
                 .map(requestMapper::toDto)
                 .toList();
+    }
+
+    public List<ParticipationRequestDto> getRequestsByUser(Long userId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        return requestRepository.findAllByRequesterId(userId)
+                .stream()
+                .map(requestMapper::toDto)
+                .toList();
+    }
+
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    public ParticipationRequestDto createRequest(Long userId, Long eventId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Event not found"));
+
+        if (event.getInitiator().getId().equals(userId)) {
+            throw new ConflictException("Initiator cannot request participation in their own event");
+        }
+
+        if (!event.getState().equals(EventState.PUBLISHED)) {
+            throw new ConflictException("Event must be published to request participation");
+        }
+
+        if (event.getParticipantLimit() != 0 &&
+            requestRepository.countByEventIdAndStatus(eventId, RequestStatus.CONFIRMED) >= event.getParticipantLimit()) {
+            throw new ConflictException("Event participant limit reached");
+        }
+
+        ParticipationRequest request = new ParticipationRequest();
+        request.setRequester(user);
+        request.setEvent(event);
+        request.setStatus(event.getRequestModeration() ? RequestStatus.PENDING : RequestStatus.CONFIRMED);
+        request.setCreated(LocalDateTime.now());
+
+        return requestMapper.toDto(requestRepository.save(request));
     }
 
     @Transactional(isolation = Isolation.REPEATABLE_READ)
@@ -55,6 +95,19 @@ public class ParticipationRequestService {
             }
         });
         return result;
+    }
+
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    public ParticipationRequestDto cancelRequest(Long userId, Long requestId) {
+        ParticipationRequest request = requestRepository.findById(requestId)
+                .orElseThrow(() -> new NotFoundException("Request not found"));
+
+        if (!request.getRequester().getId().equals(userId)) {
+            throw new ConflictException("User is not the requester");
+        }
+
+        request.setStatus(RequestStatus.REJECTED);
+        return requestMapper.toDto(requestRepository.save(request));
     }
 
     //почти 100 процентов это работать не будет, нужны тесты, чтобы понять, что вообще от нас хоят))
