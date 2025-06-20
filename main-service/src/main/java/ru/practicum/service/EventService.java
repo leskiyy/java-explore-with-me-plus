@@ -136,7 +136,11 @@ public class EventService {
             throw new ConflictException("Событие добавленно не теущем пользователем или уже было опубликовано");
         }
         updateNouNullFields(eventToUpdate, event);
-        eventToUpdate.setState(EventState.PENDING);
+        if (event.getStateAction() == UserEventAction.CANCEL_REVIEW) {
+            eventToUpdate.setState(EventState.CANCELED);
+        } else if (event.getStateAction() == UserEventAction.SEND_TO_REVIEW) {
+            eventToUpdate.setState(EventState.PENDING);
+        }
         Event updated = eventRepository.save(eventToUpdate);
 
         Map<Long, Long> confirmed = requestRepository.countRequestsByEventIdsAndStatus(List.of(eventId), RequestStatus.CONFIRMED);
@@ -184,6 +188,7 @@ public class EventService {
         if (event.getEventDate().minusHours(1).isBefore(LocalDateTime.now())) {
             throw new ConflictException("To late to change event");
         }
+        updateNouNullFields(event, updateRequest);
         event.setState(updateRequest.getStateAction() == AdminEventAction.PUBLISH_EVENT ? EventState.PUBLISHED : EventState.CANCELED);
         Event updated = eventRepository.save(event);
 

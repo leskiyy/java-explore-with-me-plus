@@ -68,8 +68,9 @@ public class PrivateEventController {
     @GetMapping("/{eventId}/requests")
     public List<ParticipationRequestDto> getUsersRequests(@PathVariable @Positive Long userId,
                                                           @PathVariable @Positive Long eventId) {
-        log.info("Getting requests by userId={} for eventId={}", userId, eventId);
-        return requestService.getRequestForEventByUserId(eventId, userId);
+        List<ParticipationRequestDto> requestForEventByUserId = requestService.getRequestForEventByUserId(eventId, userId);
+        log.info("Get requests by userId={} for eventId={}, requests={}", userId, eventId, requestForEventByUserId);
+        return requestForEventByUserId;
     }
 
     @PatchMapping("/{eventId}/requests")

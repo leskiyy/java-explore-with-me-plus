@@ -22,10 +22,10 @@ public class NewEventDto {
     @Future
     LocalDateTime eventDate;
     Location location;
-    Boolean paid;
+    Boolean paid = false;
     @PositiveOrZero
-    Integer participantLimit;
-    Boolean requestModeration;
+    Integer participantLimit = 0;
+    Boolean requestModeration = true;
     @Size(min = 3, max = 120)
     String title;
 }

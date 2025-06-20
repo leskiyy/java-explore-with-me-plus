@@ -31,7 +31,12 @@ public class ParticipationRequestService {
     private final ParticipationRequestMapper requestMapper;
 
     public List<ParticipationRequestDto> getRequestForEventByUserId(Long eventId, Long userId) {
-        List<ParticipationRequest> requests = requestRepository.findAllByRequesterIdAndEventId(userId, eventId);
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Event id" + eventId + "not found"));
+        if (!Objects.equals(event.getInitiator().getId(), userId)) {
+            throw new ConflictException("Can't get request for event id=" + eventId + "by user id=" + userId);
+        }
+        List<ParticipationRequest> requests = requestRepository.findAllByEventId(eventId);
         return requests.stream()
                 .map(requestMapper::toDto)
                 .toList();
@@ -115,7 +120,7 @@ public class ParticipationRequestService {
             throw new ConflictException("User is not the requester");
         }
 
-        request.setStatus(RequestStatus.REJECTED);
+        request.setStatus(RequestStatus.CANCELED);
         return requestMapper.toDto(requestRepository.save(request));
     }
 
@@ -125,6 +130,12 @@ public class ParticipationRequestService {
         if (hasNotPendingRequests)
             throw new ConflictException("Can't change status when request status is not PENDING");
 
+        if (status == RequestStatus.REJECTED) {
+            for (ParticipationRequest request : requests) {
+                request.setStatus(RequestStatus.REJECTED);
+            }
+            return;
+        }
         Boolean requestModeration = event.getRequestModeration();
         Integer participantLimit = event.getParticipantLimit();
 
@@ -132,11 +143,12 @@ public class ParticipationRequestService {
             requests.forEach(request -> request.setStatus(status));
             return;
         }
+
         long confirmed = requestRepository
                 .countByEventIdAndStatus(event.getId(), RequestStatus.CONFIRMED);
         for (ParticipationRequest request : requests) {
             if (confirmed >= participantLimit) {
-                request.setStatus(RequestStatus.REJECTED);
+                throw new ConflictException("Requests out of limit");
             } else {
                 request.setStatus(status);
                 confirmed++;

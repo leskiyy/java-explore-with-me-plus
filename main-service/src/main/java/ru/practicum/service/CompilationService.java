@@ -1,7 +1,9 @@
 package ru.practicum.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.compilation.CompilationDto;
 import ru.practicum.dto.compilation.NewCompilationDto;
@@ -25,8 +27,8 @@ public class CompilationService {
     private final CompilationMapper compilationMapper;
     private final EventRepository eventRepository;
 
-    public List<CompilationDto> getAllCompilations() {
-        return compilationRepository.findAll().stream()
+    public List<CompilationDto> getAllCompilations(Pageable pageable) {
+        return compilationRepository.findAll(pageable).stream()
                 .map(compilationMapper::toDto)
                 .toList();
     }
@@ -37,6 +39,7 @@ public class CompilationService {
                 .orElseThrow(() -> new NotFoundException("Подборка не найдена"));
     }
 
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public CompilationDto createCompilation(NewCompilationDto dto) {
         Compilation compilation = new Compilation();
         compilation.setTitle(dto.getTitle());
@@ -50,10 +53,12 @@ public class CompilationService {
         return compilationMapper.toDto(compilationRepository.save(compilation));
     }
 
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public void deleteCompilation(Long compId) {
         compilationRepository.deleteById(compId);
     }
 
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public CompilationDto updateCompilation(Long compId, UpdateCompilationRequest dto) {
         Compilation compilation = compilationRepository.findById(compId)
                 .orElseThrow(() -> new NotFoundException("Compilation not found"));

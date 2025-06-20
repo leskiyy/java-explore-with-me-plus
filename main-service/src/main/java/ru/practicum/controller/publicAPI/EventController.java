@@ -40,7 +40,6 @@ public class EventController {
             @RequestParam(defaultValue = "10") Integer size,
             HttpServletRequest request) {
         if (rangeStart != null && rangeEnd != null && rangeStart.isAfter(rangeEnd)) {
-            System.out.println();
             throw new BadRequestException("rangeEnd can't before rangeStart");
         }
         if (rangeEnd == null && rangeStart == null) {

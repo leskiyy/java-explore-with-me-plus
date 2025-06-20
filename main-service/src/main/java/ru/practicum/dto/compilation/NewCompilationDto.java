@@ -1,5 +1,6 @@
 package ru.practicum.dto.compilation;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -11,7 +12,8 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class NewCompilationDto {
     List<Integer> events;
-    Boolean pinned;
+    Boolean pinned = false;
+    @NotBlank
     @Size(min = 1, max = 50)
     String title;
 }

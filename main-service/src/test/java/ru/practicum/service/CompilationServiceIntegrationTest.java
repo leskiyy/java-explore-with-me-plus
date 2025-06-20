@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.IntegrationTestBase;
 import ru.practicum.dto.compilation.CompilationDto;
@@ -41,7 +42,7 @@ class CompilationServiceIntegrationTest extends IntegrationTestBase {
         entityManager.flush();
         entityManager.clear();
 
-        List<CompilationDto> result = compilationService.getAllCompilations();
+        List<CompilationDto> result = compilationService.getAllCompilations(PageRequest.of(0, 10));
 
         assertThat(result).hasSize(2);
         assertThat(result).extracting(CompilationDto::getTitle)

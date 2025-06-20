@@ -2,10 +2,9 @@ package ru.practicum.controller.publicAPI;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.compilation.CompilationDto;
 import ru.practicum.service.CompilationService;
 
@@ -20,9 +19,12 @@ public class CompilationController {
     private final CompilationService compilationService;
 
     @GetMapping
-    public List<CompilationDto> getCompilations() {
+    public List<CompilationDto> getCompilations(@RequestParam(defaultValue = "0") Integer from,
+                                                @RequestParam(defaultValue = "10") Integer size) {
+        int page = from / size;
+        Pageable pageable = PageRequest.of(page, size);
         log.info("GET /compilations called");
-        List<CompilationDto> compilations = compilationService.getAllCompilations();
+        List<CompilationDto> compilations = compilationService.getAllCompilations(pageable);
         log.info("Returned {} compilations", compilations.size());
         return compilations;
     }
