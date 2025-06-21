@@ -33,6 +33,9 @@ public class StatsController {
                                    @RequestParam(required = false) List<String> uris,
                                    @RequestParam(defaultValue = "false") boolean unique) {
         log.info("GET /stats: start={}, end={}, uris={}, unique={}", start, end, uris, unique);
+        if (start.isAfter(end)) {
+            throw new IllegalArgumentException("start param can't be before end");
+        }
         return statsService.getStats(start, end, uris, unique);
     }
 }
