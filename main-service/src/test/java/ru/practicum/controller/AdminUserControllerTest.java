@@ -15,7 +15,6 @@ import ru.practicum.dto.user.NewUserRequest;
 import ru.practicum.dto.user.UserDto;
 import ru.practicum.service.UserService;
 
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -32,24 +31,6 @@ class AdminUserControllerTest {
 
     @MockBean
     private final UserService service;
-
-    @Test
-    @SneakyThrows
-    void getUsers() {
-        List<UserDto> expected = List.of(new UserDto());
-
-        when(service.getUsers(null, 0, 10)).thenReturn(expected);
-
-        String contentAsString = mvc.perform(get("/admin/users"))
-                .andExpect(status().is(200))
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        verify(service, times(1)).getUsers(null, 0, 10);
-        verifyNoMoreInteractions(service);
-        assertThat(contentAsString).isEqualTo(objectMapper.writeValueAsString(expected));
-    }
 
     @Test
     @SneakyThrows

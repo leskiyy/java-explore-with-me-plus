@@ -42,6 +42,7 @@ public class AdminEventController {
                 .from(from)
                 .size(size)
                 .build();
+
         log.info("Getting events by params: users={}, states={}, categories={}, rangeStart={}, rangeEnd={}, from={}, size={}",
                 users, states, categories, rangeStart, rangeEnd, from, size);
         return eventService.getEventsByParams(params);

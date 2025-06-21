@@ -2,10 +2,9 @@ package ru.practicum.controller.publicAPI;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.compilation.CompilationDto;
+import ru.practicum.parameters.PageableSearchParam;
 import ru.practicum.service.CompilationService;
 
 import java.util.List;
@@ -21,10 +20,13 @@ public class CompilationController {
     @GetMapping
     public List<CompilationDto> getCompilations(@RequestParam(defaultValue = "0") Integer from,
                                                 @RequestParam(defaultValue = "10") Integer size) {
-        int page = from / size;
-        Pageable pageable = PageRequest.of(page, size);
+        PageableSearchParam param = PageableSearchParam.builder()
+                .size(size)
+                .from(from)
+                .build();
+
         log.info("GET /compilations called");
-        List<CompilationDto> compilations = compilationService.getAllCompilations(pageable);
+        List<CompilationDto> compilations = compilationService.getAllCompilations(param.getPageable());
         log.info("Returned {} compilations", compilations.size());
         return compilations;
     }

@@ -1,5 +1,6 @@
 package ru.practicum.repository;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import ru.practicum.entity.ParticipationRequest;
@@ -17,10 +18,9 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
             group by r.event.id""")
     List<Object[]> countRequestsByStatus(List<Long> ids, RequestStatus status);
 
-    List<ParticipationRequest> findAllByRequesterIdAndEventId(Long requesterId, Long eventId);
-
     long countByEventIdAndStatus(Long eventId, RequestStatus status);
 
+    @EntityGraph(attributePaths = {"requester","event"})
     List<ParticipationRequest> findAllByRequesterId(Long userId);
 
     default Map<Long, Long> countRequestsByEventIdsAndStatus(List<Long> ids, RequestStatus status) {
@@ -32,5 +32,6 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
                 ));
     }
 
+    @EntityGraph(attributePaths = {"requester","event"})
     List<ParticipationRequest> findAllByEventId(Long eventId);
 }

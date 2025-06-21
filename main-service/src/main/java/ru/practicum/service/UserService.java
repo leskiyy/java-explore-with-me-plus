@@ -1,6 +1,7 @@
 package ru.practicum.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,6 +10,7 @@ import ru.practicum.dto.user.UserDto;
 import ru.practicum.entity.User;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.mapper.UserMapper;
+import ru.practicum.parameters.UserAdminSearchParam;
 import ru.practicum.repository.UserRepository;
 
 import java.util.List;
@@ -35,16 +37,14 @@ public class UserService {
         userRepository.deleteById(userId);
     }
 
-    public List<UserDto> getUsers(List<Long> ids, Integer from, Integer size) {
-        List<User> users;
-        if (ids != null) {
-            users = userRepository.getUsersByIdIn(ids);
+    public List<UserDto> getUsers(UserAdminSearchParam params) {
+        Page<User> users;
+        if (params.getIds() != null) {
+            users = userRepository.getUsersByIdIn(params.getIds(), params.getPageable());
         } else {
-            users = userRepository.findAll();
+            users = userRepository.findAll(params.getPageable());
         }
         return users.stream()
-                .skip(from)
-                .limit(size)
                 .map(mapper::toDto)
                 .toList();
     }
