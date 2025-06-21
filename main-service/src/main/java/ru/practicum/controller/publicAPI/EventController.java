@@ -3,11 +3,15 @@ package ru.practicum.controller.publicAPI;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.client.StatsClient;
 import ru.practicum.dto.HitDto;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventShortDto;
+import ru.practicum.dto.event.SortSearchParam;
+import ru.practicum.exception.BadRequestException;
+import ru.practicum.parameters.PublicSearchParam;
 import ru.practicum.service.EventService;
 
 import java.time.LocalDateTime;
@@ -28,17 +32,25 @@ public class EventController {
             @RequestParam(required = false) String text,
             @RequestParam(required = false) List<Long> categories,
             @RequestParam(required = false) Boolean paid,
-            @RequestParam(required = false) LocalDateTime start,
-            @RequestParam(required = false) LocalDateTime end,
-            @RequestParam(defaultValue = "EVENT_DATE") String sort,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeStart,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
+            @RequestParam(required = false) SortSearchParam sort,
+            @RequestParam(defaultValue = "false") Boolean onlyAvailable,
             @RequestParam(defaultValue = "0") Integer from,
             @RequestParam(defaultValue = "10") Integer size,
             HttpServletRequest request) {
 
+        if (rangeStart != null && rangeEnd != null && rangeStart.isAfter(rangeEnd)) {
+            throw new BadRequestException("rangeEnd can't before rangeStart");
+        }
+        if (rangeEnd == null && rangeStart == null) {
+            rangeStart = LocalDateTime.now();
+        }
+
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
         log.info("GET /events: text={}, categories={}, paid={}, start={}, end={}, sort={}, from={}, size={}, ip={}, uri={}, ts={}",
-                text, categories, paid, start, end, sort, from, size,
+                text, categories, paid, rangeStart, rangeEnd, sort, from, size,
                 request.getRemoteAddr(), request.getRequestURI(), timestamp);
 
         statsClient.postHit(HitDto.builder()
@@ -48,9 +60,19 @@ public class EventController {
                 .timestamp(timestamp)
                 .build());
 
-        List<Long> categoriesParam = (categories == null || categories.isEmpty()) ? null : categories;
+        PublicSearchParam param = PublicSearchParam.builder()
+                .text(text)
+                .categories(categories)
+                .paid(paid)
+                .onlyAvailable(onlyAvailable)
+                .rangeStart(rangeStart)
+                .rangeEnd(rangeEnd)
+                .sort(sort)
+                .from(from)
+                .size(size)
+                .build();
 
-        List<EventShortDto> events = eventService.searchEvents(text, categoriesParam, paid, start, end, sort, from, size);
+        List<EventShortDto> events = eventService.searchEvents(param);
 
         log.info("Returned {} events for GET /events", events.size());
         return events;

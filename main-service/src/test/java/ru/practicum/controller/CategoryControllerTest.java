@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.controller.publicAPI.CategoryController;
 import ru.practicum.dto.category.CategoryDto;
@@ -31,7 +32,9 @@ public class CategoryControllerTest {
                 CategoryDto.builder().id(1L).name("Concerts").build(),
                 CategoryDto.builder().id(2L).name("Theatre").build()
         );
-        when(categoryService.getAllCategories()).thenReturn(categories);
+        PageRequest pageable = PageRequest.of(0, 10);
+
+        when(categoryService.getAllCategories(pageable)).thenReturn(categories);
 
         mockMvc.perform(get("/categories"))
                 .andExpect(status().isOk())
@@ -41,7 +44,7 @@ public class CategoryControllerTest {
                 .andExpect(jsonPath("$[1].id").value(categories.get(1).getId().intValue()))
                 .andExpect(jsonPath("$[1].name").value(categories.get(1).getName()));
 
-        verify(categoryService, times(1)).getAllCategories();
+        verify(categoryService, times(1)).getAllCategories(pageable);
         verifyNoMoreInteractions(categoryService);
     }
 

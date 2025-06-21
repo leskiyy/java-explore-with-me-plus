@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.user.NewUserRequest;
 import ru.practicum.dto.user.UserDto;
+import ru.practicum.parameters.UserAdminSearchParam;
 import ru.practicum.service.UserService;
 
 import java.util.List;
@@ -23,7 +24,11 @@ public class AdminUserController {
     public List<UserDto> getUsers(@RequestParam(required = false) List<Long> ids,
                                   @RequestParam(defaultValue = "0") Integer from,
                                   @RequestParam(defaultValue = "10") Integer size) {
-        return userService.getUsers(ids, from, size);
+        UserAdminSearchParam params = UserAdminSearchParam.builder().ids(ids)
+                .size(size)
+                .from(from)
+                .build();
+        return userService.getUsers(params);
     }
 
     @PostMapping

@@ -20,7 +20,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -55,7 +54,7 @@ public class EventControllerTest {
                 .confirmedRequests(3L)
                 .build();
 
-        when(eventService.searchEvents(any(), any(), any(), any(), any(), any(), anyInt(), anyInt()))
+        when(eventService.searchEvents(any()))
                 .thenReturn(List.of(dto));
 
         mockMvc.perform(get("/events"))

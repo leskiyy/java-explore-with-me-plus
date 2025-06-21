@@ -17,6 +17,7 @@ import ru.practicum.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +31,12 @@ public class ParticipationRequestService {
     private final ParticipationRequestMapper requestMapper;
 
     public List<ParticipationRequestDto> getRequestForEventByUserId(Long eventId, Long userId) {
-        List<ParticipationRequest> requests = requestRepository.findAllByRequesterIdAndEventId(userId, eventId);
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Event id" + eventId + "not found"));
+        if (!Objects.equals(event.getInitiator().getId(), userId)) {
+            throw new ConflictException("Can't get request for event id=" + eventId + "by user id=" + userId);
+        }
+        List<ParticipationRequest> requests = requestRepository.findAllByEventId(eventId);
         return requests.stream()
                 .map(requestMapper::toDto)
                 .toList();
@@ -68,7 +74,12 @@ public class ParticipationRequestService {
         ParticipationRequest request = new ParticipationRequest();
         request.setRequester(user);
         request.setEvent(event);
-        request.setStatus(event.getRequestModeration() ? RequestStatus.PENDING : RequestStatus.CONFIRMED);
+
+        if (event.getParticipantLimit() == 0) {
+            request.setStatus(RequestStatus.CONFIRMED);
+        } else {
+            request.setStatus(event.getRequestModeration() ? RequestStatus.PENDING : RequestStatus.CONFIRMED);
+        }
         request.setCreated(LocalDateTime.now());
 
         return requestMapper.toDto(requestRepository.save(request));
@@ -81,6 +92,9 @@ public class ParticipationRequestService {
         List<ParticipationRequest> requestList = requestRepository.findAllById(updateRequest.getRequestIds());
         Event event = eventRepository
                 .findById(eventId).orElseThrow(() -> new NotFoundException("There is no event id=" + eventId));
+        if (!Objects.equals(event.getInitiator().getId(), userId)) {
+            throw new ConflictException("Can't update event id=" + eventId + " requests by user id=" + userId);
+        }
         updateRequests(requestList, updateRequest.getStatus(), event);
 
         EventRequestStatusUpdateResult result = new EventRequestStatusUpdateResult();
@@ -106,7 +120,7 @@ public class ParticipationRequestService {
             throw new ConflictException("User is not the requester");
         }
 
-        request.setStatus(RequestStatus.REJECTED);
+        request.setStatus(RequestStatus.CANCELED);
         return requestMapper.toDto(requestRepository.save(request));
     }
 
@@ -116,6 +130,12 @@ public class ParticipationRequestService {
         if (hasNotPendingRequests)
             throw new ConflictException("Can't change status when request status is not PENDING");
 
+        if (status == RequestStatus.REJECTED) {
+            for (ParticipationRequest request : requests) {
+                request.setStatus(RequestStatus.REJECTED);
+            }
+            return;
+        }
         Boolean requestModeration = event.getRequestModeration();
         Integer participantLimit = event.getParticipantLimit();
 
@@ -124,15 +144,14 @@ public class ParticipationRequestService {
             return;
         }
 
-        Long confirmedRequests = requestRepository
-                .countRequestsByEventIdsAndStatus(List.of(event.getId()), RequestStatus.CONFIRMED)
-                .get(event.getId());
+        long confirmed = requestRepository
+                .countByEventIdAndStatus(event.getId(), RequestStatus.CONFIRMED);
         for (ParticipationRequest request : requests) {
-            if (confirmedRequests >= participantLimit) {
-                request.setStatus(RequestStatus.REJECTED);
+            if (confirmed >= participantLimit) {
+                throw new ConflictException("Requests out of limit");
             } else {
                 request.setStatus(status);
-                confirmedRequests++;
+                confirmed++;
             }
         }
     }

@@ -9,8 +9,6 @@ import org.springframework.web.client.RestTemplate;
 import ru.practicum.dto.HitDto;
 import ru.practicum.dto.StatsDto;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 
@@ -30,13 +28,13 @@ public class StatsClient {
     public List<StatsDto> getStats(String start, String end, List<String> uris, boolean unique) throws RestClientException {
 
         StringBuilder sb = new StringBuilder(url).append("/stats")
-                .append("?start=").append(URLEncoder.encode(start, StandardCharsets.UTF_8))
-                .append("&end=").append(URLEncoder.encode(end, StandardCharsets.UTF_8))
+                .append("?start=").append(start)
+                .append("&end=").append(end)
                 .append("&unique=").append(unique);
 
         if (uris != null) {
             for (String uri : uris) {
-                sb.append("&uris=").append(URLEncoder.encode(uri, StandardCharsets.UTF_8));
+                sb.append("&uris=").append(uri);
             }
         }
 

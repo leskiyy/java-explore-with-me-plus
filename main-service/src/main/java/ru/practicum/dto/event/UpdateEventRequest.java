@@ -1,31 +1,29 @@
 package ru.practicum.dto.event;
 
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
-import lombok.Data;
+import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class NewEventDto {
-    @NotNull
-    @NotBlank
+public class UpdateEventRequest {
     @Size(min = 20, max = 2000)
     String annotation;
-    Integer category;
-    @NotNull
-    @NotBlank
+    Long category;
     @Size(min = 20, max = 7000)
     String description;
     @Future
     LocalDateTime eventDate;
     Location location;
-    Boolean paid = false;
+    Boolean paid;
     @PositiveOrZero
-    Integer participantLimit = 0;
-    Boolean requestModeration = true;
+    Integer participantLimit;
+    Boolean requestModeration;
     @Size(min = 3, max = 120)
     String title;
 }

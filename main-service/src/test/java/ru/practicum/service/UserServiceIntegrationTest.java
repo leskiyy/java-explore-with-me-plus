@@ -13,6 +13,7 @@ import ru.practicum.dto.user.NewUserRequest;
 import ru.practicum.dto.user.UserDto;
 import ru.practicum.entity.User;
 import ru.practicum.exception.NotFoundException;
+import ru.practicum.parameters.UserAdminSearchParam;
 
 import java.util.List;
 
@@ -75,21 +76,21 @@ class UserServiceIntegrationTest extends IntegrationTestBase {
 
     @Test
     void getUsers_withoutIdsAndFromParam() {
-        List<UserDto> users = service.getUsers(null, 0, 10);
+        List<UserDto> users = service.getUsers(UserAdminSearchParam.builder().size(10).from(0).build());
 
         assertThat(users).hasSize(10);
     }
 
     @Test
     void getUsers_withoutIdsAndWithFromParam() {
-        List<UserDto> users = service.getUsers(null, 2, 10);
+        List<UserDto> users = service.getUsers(UserAdminSearchParam.builder().size(10).from(0).build());
 
-        assertThat(users).hasSize(8);
+        assertThat(users).hasSize(10);
     }
 
     @Test
     void getUsers_withIds() {
-        List<UserDto> users = service.getUsers(List.of(3L, 7L), 0, 10);
+        List<UserDto> users = service.getUsers(UserAdminSearchParam.builder().ids(List.of(3L, 7L)).size(10).from(0).build());
 
         assertThat(users).hasSize(2)
                 .first()

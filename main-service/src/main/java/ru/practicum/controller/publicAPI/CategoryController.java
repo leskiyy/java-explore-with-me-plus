@@ -2,11 +2,9 @@ package ru.practicum.controller.publicAPI;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.category.CategoryDto;
+import ru.practicum.parameters.PageableSearchParam;
 import ru.practicum.service.CategoryService;
 
 import java.util.List;
@@ -20,9 +18,15 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping
-    public List<CategoryDto> getCategories() {
+    public List<CategoryDto> getCategories(@RequestParam(defaultValue = "0") Integer from,
+                                           @RequestParam(defaultValue = "10") Integer size) {
+        PageableSearchParam param = PageableSearchParam.builder()
+                .size(size)
+                .from(from)
+                .build();
+
         log.info("GET /categories called");
-        List<CategoryDto> categories = categoryService.getAllCategories();
+        List<CategoryDto> categories = categoryService.getAllCategories(param.getPageable());
         log.info("Returned {} categories", categories.size());
         return categories;
     }

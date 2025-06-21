@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventShortDto;
@@ -41,6 +42,7 @@ public class PrivateEventController {
         return eventService.getUsersEvents(params);
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public EventFullDto createEvent(@PathVariable @Positive Long userId,
                                     @RequestBody @Valid NewEventDto dto) {
@@ -66,8 +68,9 @@ public class PrivateEventController {
     @GetMapping("/{eventId}/requests")
     public List<ParticipationRequestDto> getUsersRequests(@PathVariable @Positive Long userId,
                                                           @PathVariable @Positive Long eventId) {
-        log.info("Getting requests by userId={} for eventId={}", userId, eventId);
-        return requestService.getRequestForEventByUserId(eventId, userId);
+        List<ParticipationRequestDto> requestForEventByUserId = requestService.getRequestForEventByUserId(eventId, userId);
+        log.info("Get requests by userId={} for eventId={}, requests={}", userId, eventId, requestForEventByUserId);
+        return requestForEventByUserId;
     }
 
     @PatchMapping("/{eventId}/requests")

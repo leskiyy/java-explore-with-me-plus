@@ -7,10 +7,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.client.StatsClient;
 import ru.practicum.dto.StatsDto;
-import ru.practicum.dto.event.EventFullDto;
-import ru.practicum.dto.event.EventShortDto;
-import ru.practicum.dto.event.NewEventDto;
-import ru.practicum.dto.event.UpdateEventUserRequest;
+import ru.practicum.dto.event.*;
 import ru.practicum.entity.Category;
 import ru.practicum.entity.Event;
 import ru.practicum.entity.EventState;
@@ -18,7 +15,9 @@ import ru.practicum.entity.RequestStatus;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.mapper.EventMapper;
+import ru.practicum.parameters.EventAdminSearchParam;
 import ru.practicum.parameters.EventUserSearchParam;
+import ru.practicum.parameters.PublicSearchParam;
 import ru.practicum.repository.EventRepository;
 import ru.practicum.repository.ParticipationRequestRepository;
 
@@ -29,6 +28,8 @@ import java.util.Objects;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
+import static ru.practicum.specification.EventSpecifications.eventAdminSearchParamSpec;
+import static ru.practicum.specification.EventSpecifications.eventPublicSearchParamSpec;
 
 @Service
 @RequiredArgsConstructor
@@ -68,10 +69,9 @@ public class EventService {
         return fullDto;
     }
 
-    public List<EventShortDto> searchEvents(String text, List<Long> categories, Boolean paid, LocalDateTime start,
-                                            LocalDateTime end, String sort, int from, int size) {
+    public List<EventShortDto> searchEvents(PublicSearchParam param) {
 
-        List<Event> events = eventRepository.findPublicEventsWithFilters(text, categories, paid, start, end, EventState.PUBLISHED);
+        Page<Event> events = eventRepository.findAll(eventPublicSearchParamSpec(param), param.getPageable());
 
         List<Long> eventIds = events.stream()
                 .map(Event::getId)
@@ -79,13 +79,24 @@ public class EventService {
         Map<Long, Long> views = getViews(eventIds);
         Map<Long, Long> confirmed = requestRepository.countRequestsByEventIdsAndStatus(eventIds,
                 RequestStatus.CONFIRMED);
+
         return events.stream()
                 .map(event -> {
+                    if (param.getOnlyAvailable() && confirmed.get(event.getId()) >= event.getParticipantLimit()) {
+                        return null;
+                    }
                     EventShortDto dto = eventMapper.toShortDto(event);
                     dto.setConfirmedRequests(confirmed.get(dto.getId()));
                     dto.setViews(views.get(event.getId()));
                     return dto;
                 })
+                .sorted(((o1, o2) -> {
+                    if (param.getSort() == SortSearchParam.VIEWS) {
+                        return Math.toIntExact(o1.getViews() - o2.getViews());
+                    } else {
+                        return 0;
+                    }
+                }))
                 .collect(toList());
     }
 
@@ -125,6 +136,11 @@ public class EventService {
             throw new ConflictException("Событие добавленно не теущем пользователем или уже было опубликовано");
         }
         updateNouNullFields(eventToUpdate, event);
+        if (event.getStateAction() == UserEventAction.CANCEL_REVIEW) {
+            eventToUpdate.setState(EventState.CANCELED);
+        } else if (event.getStateAction() == UserEventAction.SEND_TO_REVIEW) {
+            eventToUpdate.setState(EventState.PENDING);
+        }
         Event updated = eventRepository.save(eventToUpdate);
 
         Map<Long, Long> confirmed = requestRepository.countRequestsByEventIdsAndStatus(List.of(eventId), RequestStatus.CONFIRMED);
@@ -136,7 +152,59 @@ public class EventService {
         return result;
     }
 
-    private void updateNouNullFields(Event eventToUpdate, UpdateEventUserRequest event) {
+    public List<EventFullDto> getEventsByParams(EventAdminSearchParam params) {
+        Page<Event> searched = eventRepository.findAll(eventAdminSearchParamSpec(params), params.getPageable());
+
+        List<Long> eventIds = searched.stream()
+                .limit(params.getSize())
+                .map(Event::getId)
+                .toList();
+
+        Map<Long, Long> views = getViews(eventIds);
+        Map<Long, Long> confirmed = requestRepository.countRequestsByEventIdsAndStatus(eventIds,
+                RequestStatus.CONFIRMED);
+        System.out.println();
+        return searched.stream()
+                .limit(params.getSize())
+                .map(event -> {
+                    EventFullDto dto = eventMapper.toFullDto(event);
+                    dto.setConfirmedRequests(confirmed.get(dto.getId()) == null ? 0 : confirmed.get(dto.getId()));
+                    dto.setViews(views.get(event.getId()) == null ? 0 : views.get(event.getId()));
+                    return dto;
+                })
+                .collect(toList());
+    }
+
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    public EventFullDto updateEventByAdmin(Long eventId, UpdateEventAdminRequest updateRequest) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Event id=" + eventId + "not found"));
+        if (event.getState() != EventState.PENDING && updateRequest.getStateAction() == AdminEventAction.PUBLISH_EVENT) {
+            throw new ConflictException("Cannot publish the event because it's not in the right state: " + event.getState());
+        }
+        if (event.getState() == EventState.PUBLISHED && updateRequest.getStateAction() == AdminEventAction.REJECT_EVENT) {
+            throw new ConflictException("Cannot reject the event because it's not in the right state: PUBLISHED");
+        }
+        if (event.getEventDate().minusHours(1).isBefore(LocalDateTime.now())) {
+            throw new ConflictException("To late to change event");
+        }
+        updateNouNullFields(event, updateRequest);
+        event.setState(updateRequest.getStateAction() == AdminEventAction.PUBLISH_EVENT ? EventState.PUBLISHED : EventState.CANCELED);
+        Event updated = eventRepository.save(event);
+
+        EventFullDto dto = eventMapper.toFullDto(updated);
+
+        Map<Long, Long> views = getViews(List.of(eventId));
+        Map<Long, Long> confirmedRequests = requestRepository.countRequestsByEventIdsAndStatus(List.of(eventId),
+                RequestStatus.CONFIRMED);
+
+        dto.setViews(views.get(eventId));
+        dto.setConfirmedRequests(confirmedRequests.get(eventId));
+
+        return dto;
+    }
+
+    private void updateNouNullFields(Event eventToUpdate, UpdateEventRequest event) {
         if (event.getAnnotation() != null) eventToUpdate.setAnnotation(event.getAnnotation());
         if (event.getCategory() != null) eventToUpdate.setCategory(Category.builder().id(event.getCategory()).build());
         if (event.getDescription() != null) eventToUpdate.setDescription(event.getDescription());
@@ -159,8 +227,9 @@ public class EventService {
                 "2000-01-01 00:00:00",
                 "2100-01-01 00:00:00",
                 eventIds.stream().map(id -> "/events/" + id).toList(),
-                false);
+                true);
         return stats.stream()
+                .filter(statsDto -> !statsDto.getUri().equals("/events"))
                 .collect(toMap(statDto ->
                         Long.parseLong(statDto.getUri().replace("/events/", "")), StatsDto::getHits));
     }

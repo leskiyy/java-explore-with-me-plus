@@ -73,5 +73,6 @@ CREATE TABLE IF NOT EXISTS public.participation_request (
         REFERENCES public.event(id)
         ON DELETE CASCADE,  -- Удаление запросов при удалении события
     CONSTRAINT participation_status_check
-        CHECK (status IN ('PENDING', 'CONFIRMED', 'REJECTED'))
+        CHECK (status IN ('PENDING', 'CONFIRMED', 'REJECTED', 'CANCELED')),
+    CONSTRAINT unique_request UNIQUE (requester_id, event_id)
 );
