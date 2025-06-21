@@ -3,7 +3,6 @@ package ru.practicum.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.category.CategoryDto;
 import ru.practicum.dto.category.NewCategoryDto;
@@ -22,13 +21,13 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final CategoryMapper mapper;
 
-    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    @Transactional
     public CategoryDto save(NewCategoryDto dto) {
         Category saved = categoryRepository.save(mapper.toEntity(dto));
         return mapper.toDto(saved);
     }
 
-    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    @Transactional
     public void deleteCategory(Long catId) {
         Category category = categoryRepository.findById(catId)
                 .orElseThrow(() -> new NotFoundException("Category with id=" + catId + " was not found"));
@@ -36,7 +35,7 @@ public class CategoryService {
         categoryRepository.flush();
     }
 
-    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    @Transactional
     public CategoryDto update(CategoryDto dto) {
         Category category = categoryRepository.findById(dto.getId())
                 .orElseThrow(() -> new NotFoundException("Category with id=" + dto.getId() + " was not found"));

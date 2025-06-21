@@ -22,9 +22,11 @@ import ru.practicum.repository.EventRepository;
 import ru.practicum.repository.ParticipationRequestRepository;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -60,7 +62,7 @@ public class EventService {
 
     }
 
-    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    @Transactional
     public EventFullDto saveEvent(NewEventDto dto, Long userId) {
         Event saved = eventRepository.saveAndFlush(eventMapper.toEntity(dto, userId));
         EventFullDto fullDto = eventMapper.toFullDto(saved);
@@ -80,24 +82,25 @@ public class EventService {
         Map<Long, Long> confirmed = requestRepository.countRequestsByEventIdsAndStatus(eventIds,
                 RequestStatus.CONFIRMED);
 
-        return events.stream()
+        Stream<EventShortDto> eventShortDtoStream = events.stream()
                 .map(event -> {
                     if (param.getOnlyAvailable() && confirmed.get(event.getId()) >= event.getParticipantLimit()) {
                         return null;
                     }
                     EventShortDto dto = eventMapper.toShortDto(event);
-                    dto.setConfirmedRequests(confirmed.get(dto.getId()));
-                    dto.setViews(views.get(event.getId()));
+                    dto.setConfirmedRequests(confirmed.get(dto.getId()) == null ? 0 : confirmed.get(dto.getId()));
+                    dto.setViews(views.get(event.getId()) == null ? 0 : views.get(dto.getId()));
                     return dto;
                 })
-                .sorted(((o1, o2) -> {
-                    if (param.getSort() == SortSearchParam.VIEWS) {
-                        return Math.toIntExact(o1.getViews() - o2.getViews());
-                    } else {
-                        return 0;
-                    }
-                }))
-                .collect(toList());
+                .filter(Objects::nonNull);
+        if (param.getSort() == SortSearchParam.VIEWS) {
+            return eventShortDtoStream
+                    .sorted(Comparator.comparingLong(EventShortDto::getViews))
+                    .toList();
+        } else {
+            return eventShortDtoStream
+                    .toList();
+        }
     }
 
     public EventFullDto getEventById(Long id) {
@@ -163,7 +166,6 @@ public class EventService {
         Map<Long, Long> views = getViews(eventIds);
         Map<Long, Long> confirmed = requestRepository.countRequestsByEventIdsAndStatus(eventIds,
                 RequestStatus.CONFIRMED);
-        System.out.println();
         return searched.stream()
                 .limit(params.getSize())
                 .map(event -> {

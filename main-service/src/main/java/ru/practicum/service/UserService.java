@@ -3,7 +3,6 @@ package ru.practicum.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.user.NewUserRequest;
 import ru.practicum.dto.user.UserDto;
@@ -23,13 +22,13 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserMapper mapper;
 
-    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    @Transactional
     public UserDto create(NewUserRequest user) {
         User saved = userRepository.save(mapper.toEntity(user));
         return mapper.toDto(saved);
     }
 
-    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    @Transactional
     public void delete(Long userId) {
         if (!userRepository.existsById(userId)) {
             throw new NotFoundException("User with id=" + userId + " was not found");

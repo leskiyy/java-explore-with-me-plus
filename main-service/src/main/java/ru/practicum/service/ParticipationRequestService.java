@@ -2,7 +2,6 @@ package ru.practicum.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.request.EventRequestStatusUpdateRequest;
 import ru.practicum.dto.request.EventRequestStatusUpdateResult;
@@ -51,7 +50,7 @@ public class ParticipationRequestService {
                 .toList();
     }
 
-    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    @Transactional
     public ParticipationRequestDto createRequest(Long userId, Long eventId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
@@ -85,7 +84,7 @@ public class ParticipationRequestService {
         return requestMapper.toDto(requestRepository.save(request));
     }
 
-    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    @Transactional
     public EventRequestStatusUpdateResult updateRequests(Long eventId,
                                                          Long userId,
                                                          EventRequestStatusUpdateRequest updateRequest) {
@@ -100,10 +99,6 @@ public class ParticipationRequestService {
         EventRequestStatusUpdateResult result = new EventRequestStatusUpdateResult();
         requestList.forEach(request -> {
             switch (request.getStatus()) {
-                case RequestStatus.PENDING -> {
-                    result.getConfirmedRequests().add(requestMapper.toDto(request));
-                    result.getRejectedRequests().add(requestMapper.toDto(request));
-                }
                 case RequestStatus.REJECTED -> result.getRejectedRequests().add(requestMapper.toDto(request));
                 case RequestStatus.CONFIRMED -> result.getConfirmedRequests().add(requestMapper.toDto(request));
             }
@@ -111,7 +106,7 @@ public class ParticipationRequestService {
         return result;
     }
 
-    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    @Transactional
     public ParticipationRequestDto cancelRequest(Long userId, Long requestId) {
         ParticipationRequest request = requestRepository.findById(requestId)
                 .orElseThrow(() -> new NotFoundException("Request not found"));
@@ -124,7 +119,6 @@ public class ParticipationRequestService {
         return requestMapper.toDto(requestRepository.save(request));
     }
 
-    //почти 100 процентов это работать не будет, нужны тесты, чтобы понять, что вообще от нас хоят))
     private void updateRequests(List<ParticipationRequest> requests, RequestStatus status, Event event) {
         boolean hasNotPendingRequests = requests.stream().map(ParticipationRequest::getStatus).anyMatch(el -> el != RequestStatus.PENDING);
         if (hasNotPendingRequests)
