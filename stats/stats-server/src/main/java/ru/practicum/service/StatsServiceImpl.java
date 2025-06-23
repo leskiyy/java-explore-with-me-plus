@@ -56,7 +56,7 @@ public class StatsServiceImpl implements StatsService {
 
         return rows.stream().map(row -> new StatsDto((String) row[0],    // app
                 (String) row[1],    // uri
-                ((Number) row[2]).intValue() // hits
+                ((Number) row[2]).longValue() // hits
         )).collect(Collectors.toList());
     }
 }
