@@ -10,6 +10,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -77,5 +78,10 @@ public class Event {
     @NotNull
     @Column(name = "lon", nullable = false)
     private Double lon;
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "comment_pre_moderation", joinColumns = @JoinColumn(name = "event_id"))
+    @Column(name = "word")
+    private Set<String> forbiddenWords;
 
 }

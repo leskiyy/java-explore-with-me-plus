@@ -7,6 +7,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.client.StatsClient;
 import ru.practicum.dto.HitDto;
+import ru.practicum.dto.comment.CommentWithUserDto;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.dto.event.SortSearchParam;
@@ -95,5 +96,13 @@ public class EventController {
         EventFullDto event = eventService.getEventById(id);
         log.info("Returned event {} for GET /events/{}", event.getId(), id);
         return event;
+    }
+
+    @GetMapping("/{eventId}/comments")
+    public List<CommentWithUserDto> getCommentsByEventId(@PathVariable Long eventId,
+                                                         @RequestParam(defaultValue = "0") Integer from,
+                                                         @RequestParam(defaultValue = "10") Integer size) {
+        //TODO: Реализовать эндпоинт
+        return null;
     }
 }
