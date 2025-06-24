@@ -59,4 +59,6 @@ public class ErrorHandler {
                         .timestamp(LocalDateTime.now())
                         .build());
     }
+
+    //TODO: Добавить обработку ForbiddenException
 }
