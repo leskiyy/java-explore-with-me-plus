@@ -81,7 +81,7 @@ public class Event {
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "comment_pre_moderation", joinColumns = @JoinColumn(name = "event_id"))
-    @Column(name = "word")
+    @Column(name = "forbidden_word")
     private Set<String> forbiddenWords;
 
 }

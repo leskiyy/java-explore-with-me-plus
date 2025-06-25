@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS public.participation_request (
 );
 
 
-CREATE TABLE public.comment (
+CREATE TABLE IF NOT EXISTS public.comment (
 	id BIGSERIAL PRIMARY KEY,
 	event_id BIGINT NOT NULL,
 	author_id BIGINT,
@@ -94,7 +94,7 @@ CREATE TABLE public.comment (
 		ON DELETE SET NULL
 );
 
-CREATE TABLE public.comment_pre_moderation (
+CREATE TABLE IF NOT EXISTS public.comment_pre_moderation (
 	event_id BIGSERIAL NOT NULL,
 	forbidden_word varchar(32) NOT NULL,
 	CONSTRAINT comment_pre_moderation_pkey

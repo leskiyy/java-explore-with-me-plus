@@ -29,6 +29,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final CommentMapper mapper;
 
+    @Transactional
     public CommentDto addComment(Long userId, Long eventId, CreateUpdateCommentDto dto) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Событие не найдено"));
