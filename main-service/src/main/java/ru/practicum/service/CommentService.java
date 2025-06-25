@@ -1,92 +1,129 @@
 package ru.practicum.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.comment.*;
-import ru.practicum.exception.ConflictException;
+import ru.practicum.entity.Comment;
+import ru.practicum.entity.Event;
+import ru.practicum.entity.User;
 import ru.practicum.exception.ForbiddenException;
 import ru.practicum.exception.NotFoundException;
+import ru.practicum.mapper.CommentMapper;
+import ru.practicum.repository.CommentRepository;
+import ru.practicum.repository.EventRepository;
+import ru.practicum.repository.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
-public interface CommentService {
-    /**
-     * Returns CommentDto if creating comment successful
-     *
-     * @param userId
-     * @param eventId
-     * @param dto
-     * @throws NotFoundException  if event or user not found
-     * @throws ForbiddenException if event has pre moderation and
-     *                            comment's content is not allowed
-     **/
-    CommentDto postComment(Long userId, Long eventId, CreateUpdateCommentDto dto);
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class CommentService {
 
-    /**
-     * Returns CommentDto if updating comment successful
-     *
-     * @param userId
-     * @param eventId
-     * @param dto
-     * @throws NotFoundException  if event, user or comment not found
-     * @throws ForbiddenException if event has pre moderation and
-     *                            comment's content is not allowed
-     **/
-    CommentDto updateComment(Long userId, Long eventId, CreateUpdateCommentDto dto);
+    private final EventRepository eventRepository;
+    private final UserRepository userRepository;
+    private final CommentRepository commentRepository;
+    private final CommentMapper mapper;
 
-    /**
-     * Delete comment by comment id
-     *
-     * @param userId
-     * @param eventId
-     * @param commentId
-     * @throws NotFoundException if event, user or comment not found
-     * @throws ConflictException if comment is written not by user id=userId
-     **/
-    void deleteComment(Long userId, Long eventId, Long commentId);
+    public CommentDto addComment(Long userId, Long eventId, CreateUpdateCommentDto dto) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Событие не найдено"));
+        User author = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
-    /**
-     * Delete comment by commentId by admin
-     *
-     * @param commentId
-     * @throws NotFoundException if comment not found
-     **/
-    void deleteCommentByAdmin(Long commentId);
+        Set<String> forbiddenWords = event.getForbiddenWords();
+        if (forbiddenWords != null && !forbiddenWords.isEmpty()) {
+            String contentLower = dto.getContent().toLowerCase();
+            boolean hasForbidden = forbiddenWords.stream()
+                    .anyMatch(word -> contentLower.contains(word.toLowerCase()));
+            if (hasForbidden) {
+                throw new ForbiddenException("Комментарий содержит запрещённые слова");
+            }
+        }
 
-    /**
-     * Delete all user's comments id userId
-     *
-     * @param userId
-     * @throws NotFoundException if user is not found
-     **/
-    void deleteCommentsByUser(Long userId);
+        Comment comment = new Comment();
+        comment.setEvent(event);
+        comment.setAuthor(author);
+        comment.setContent(dto.getContent());
+        comment.setCreated(LocalDateTime.now());
+        comment.setUpdated(LocalDateTime.now());
 
-    /**
-     * Add Set of Sting from PreModerationRequest.forbiddenWords to existing Event.forbiddenWords or create a new one,
-     * after adding new stop word make moderation of existing comments
-     *
-     * @param userId
-     * @param eventId
-     * @param preModerationDto
-     * @throws NotFoundException if event or user not found
-     * @throws ConflictException if event's id=eventId initiator is not user id=userId
-     **/
-    void addPreModeration(Long userId, Long eventId, PreModerationRequest preModerationDto);
+        comment = commentRepository.save(comment);
 
-    /**
-     * Returns List of CommentWithEventDto by userId
-     *
-     * @param userId
-     * @param pageable
-     * @throws NotFoundException if user not found
-     **/
-    List<CommentWithEventDto> getUsersComments(Long userId, Pageable pageable);
+        return mapper.toDto(comment);
+    }
 
-    /**
-     * Returns List of CommentWithEventDto by userId
-     *
-     * @param eventId
-     * @param pageable
-     * @throws NotFoundException if event not found
-     **/
-    List<CommentWithUserDto> getCommentsByEventId(Long eventId, Pageable pageable);
+    public void addPreModeration(Long userId, Long eventId, PreModerationRequest preModerationDto) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Событие не найдено"));
+        if (!event.getInitiator().getId().equals(userId)) {
+            throw new ForbiddenException("Только инициатор события может устанавливать премодерацию");
+        }
+        event.setForbiddenWords(preModerationDto.getForbiddenWords());
+        eventRepository.save(event);
+    }
+
+    public CommentDto updateComment(Long userId, Long commentId, CreateUpdateCommentDto dto) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new NotFoundException("Комментарий не найден"));
+
+        if (comment.getAuthor() == null || !comment.getAuthor().getId().equals(userId)) {
+            throw new ForbiddenException("Редактировать можно только свои комментарии");
+        }
+
+        Set<String> forbiddenWords = comment.getEvent().getForbiddenWords();
+        if (forbiddenWords != null && !forbiddenWords.isEmpty()) {
+            String contentLower = dto.getContent().toLowerCase();
+            boolean hasForbidden = forbiddenWords.stream()
+                    .anyMatch(word -> contentLower.contains(word.toLowerCase()));
+            if (hasForbidden) {
+                throw new ForbiddenException("Комментарий содержит запрещённые слова");
+            }
+        }
+
+        comment.setContent(dto.getContent());
+        comment.setUpdated(LocalDateTime.now());
+
+        comment = commentRepository.save(comment);
+
+        return mapper.toDto(comment);
+    }
+
+    public List<CommentWithUserDto> getCommentsByEventId(Long eventId, Pageable pageable) {
+        return commentRepository.findByEventId(eventId, pageable)
+                .stream()
+                .map(mapper::toWithUserDto)
+                .toList();
+    }
+
+    public List<CommentWithEventDto> getUsersComments(Long userId, Pageable pageable) {
+        return commentRepository.findByAuthorId(userId, pageable)
+                .stream()
+                .map(mapper::toWithEventDto)
+                .toList();
+    }
+
+    public void deleteComment(Long userId, Long commentId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new NotFoundException("Комментарий не найден"));
+
+        if (!comment.getAuthor().getId().equals(userId)) {
+            throw new ForbiddenException("Удалять можно только свои комментарии");
+        }
+        commentRepository.delete(comment);
+    }
+
+    public void deleteCommentsByUser(Long userId) {
+        commentRepository.deleteByAuthorId(userId);
+    }
+
+    public void deleteCommentByAdmin(Long commentId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new NotFoundException("Комментарий не найден"));
+        commentRepository.delete(comment);
+    }
 }

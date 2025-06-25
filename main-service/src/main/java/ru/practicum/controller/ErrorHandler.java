@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import ru.practicum.dto.ApiError;
 import ru.practicum.exception.BadRequestException;
 import ru.practicum.exception.ConflictException;
+import ru.practicum.exception.ForbiddenException;
 import ru.practicum.exception.NotFoundException;
 
 import java.time.LocalDateTime;
@@ -60,5 +61,17 @@ public class ErrorHandler {
                         .build());
     }
 
-    //TODO: Добавить обработку ForbiddenException
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ApiError> handleForbidden(ForbiddenException e) {
+        log.info("403 {}", e.getMessage());
+        String forbiddenReason = "Access denied.";
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiError.builder()
+                        .status(HttpStatus.FORBIDDEN.toString())
+                        .errors(Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).toList())
+                        .reason(forbiddenReason)
+                        .message(e.getMessage())
+                        .timestamp(LocalDateTime.now())
+                        .build());
+    }
 }
