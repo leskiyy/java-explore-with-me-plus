@@ -1,10 +1,10 @@
 package ru.practicum.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.dto.comment.CommentDto;
-import ru.practicum.dto.comment.CreateUpdateCommentDto;
+import ru.practicum.dto.comment.*;
 import ru.practicum.entity.Comment;
 import ru.practicum.entity.Event;
 import ru.practicum.entity.User;
@@ -57,6 +57,16 @@ public class CommentService {
         return mapper.toDto(comment);
     }
 
+    public void addPreModeration(Long userId, Long eventId, PreModerationRequest preModerationDto) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Событие не найдено"));
+        if (!event.getInitiator().getId().equals(userId)) {
+            throw new ForbiddenException("Только инициатор события может устанавливать премодерацию");
+        }
+        event.setForbiddenWords(preModerationDto.getForbiddenWords());
+        eventRepository.save(event);
+    }
+
     public CommentDto updateComment(Long userId, Long commentId, CreateUpdateCommentDto dto) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new NotFoundException("Комментарий не найден"));
@@ -83,16 +93,17 @@ public class CommentService {
         return mapper.toDto(comment);
     }
 
-    public List<CommentDto> getEventComments(Long eventId) {
-        return commentRepository.findByEventId(eventId).stream()
-                .map(mapper::toDto)
+    public List<CommentWithUserDto> getCommentsByEventId(Long eventId, Pageable pageable) {
+        return commentRepository.findByEventId(eventId, pageable)
+                .stream()
+                .map(mapper::toWithUserDto)
                 .toList();
     }
 
-    public List<CommentDto> getAllUserComments(Long userId) {
-        return commentRepository.findByAuthorId(userId)
+    public List<CommentWithEventDto> getUsersComments(Long userId, Pageable pageable) {
+        return commentRepository.findByAuthorId(userId, pageable)
                 .stream()
-                .map(mapper::toDto)
+                .map(mapper::toWithEventDto)
                 .toList();
     }
 
@@ -106,8 +117,13 @@ public class CommentService {
         commentRepository.delete(comment);
     }
 
-    public void deleteAllUserComments(Long userId) {
-        List<Comment> comments = commentRepository.findByAuthorId(userId);
-        commentRepository.deleteAll(comments);
+    public void deleteCommentsByUser(Long userId) {
+        commentRepository.deleteByAuthorId(userId);
+    }
+
+    public void deleteCommentByAdmin(Long commentId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new NotFoundException("Комментарий не найден"));
+        commentRepository.delete(comment);
     }
 }
