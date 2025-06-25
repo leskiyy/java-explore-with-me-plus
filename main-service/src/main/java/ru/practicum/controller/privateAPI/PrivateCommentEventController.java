@@ -1,5 +1,7 @@
 package ru.practicum.controller.privateAPI;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -19,29 +21,31 @@ public class PrivateCommentEventController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public CommentDto postComment(@PathVariable Long userId,
-                                  @PathVariable Long eventId,
-                                  @RequestBody CreateUpdateCommentDto dto) {
+    public CommentDto postComment(@PathVariable @Positive Long userId,
+                                  @PathVariable @Positive Long eventId,
+                                  @RequestBody @Valid CreateUpdateCommentDto dto) {
         log.info("Adding new comment userId={}, eventId={}, dto{}", userId, eventId, dto);
         return service.addComment(userId, eventId, dto);
     }
 
     @PatchMapping("/{commentId}")
-    public CommentDto editComment(@PathVariable Long userId,
-                                  @PathVariable Long eventId,
-                                  @PathVariable Long commentId,
-                                  @RequestBody CreateUpdateCommentDto dto) {
-        //TODO: Реализовать эндпоинт
-        return null;
+    public CommentDto editComment(@PathVariable @Positive Long userId,
+                                  @PathVariable @Positive Long eventId,
+                                  @PathVariable @Positive Long commentId,
+                                  @RequestBody @Valid CreateUpdateCommentDto dto) {
+        log.info("Updating new comment userId={}, eventId={}, dto{}", userId, eventId, dto);
+        return service.updateComment(userId, eventId, commentId, dto);
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{commentId}")
     public void deleteComment(@PathVariable Long userId,
                               @PathVariable Long eventId,
                               @PathVariable Long commentId) {
-        //TODO: Реализовать эндпоинт
+        service.deleteComment(userId, commentId);
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/pre-moderation")
     public void addPreModeration(@PathVariable Long userId,
                                  @PathVariable Long eventId,
