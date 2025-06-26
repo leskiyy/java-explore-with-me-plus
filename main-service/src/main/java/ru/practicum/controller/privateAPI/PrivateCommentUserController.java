@@ -1,6 +1,7 @@
 package ru.practicum.controller.privateAPI;
 
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -21,8 +22,8 @@ public class PrivateCommentUserController {
 
     @GetMapping
     public List<CommentWithEventDto> getUsersComment(@PathVariable @Positive Long userId,
-                                                     @RequestParam(defaultValue = "0") Integer from,
-                                                     @RequestParam(defaultValue = "10") Integer size) {
+                                                     @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+                                                     @RequestParam(defaultValue = "10") @Positive Integer size) {
         log.info("Getting user's comments userId={}", userId);
         PageableSearchParam param = PageableSearchParam.builder()
                 .from(from)
