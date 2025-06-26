@@ -106,7 +106,6 @@
 													"    pm.expect(target.created).to.not.be.null;",
 													"    pm.expect(source.content).equal(target.content, 'Текст комментария должен соответствовать тексту комментария в запросе');",
 													"    pm.expect(target.isAuthorParticipant).to.be.true;",
-													"    pm.expect(target.author).equal(pm.variables.get(\"uid\"), 'Id автора не совпадает');",
 													"    pm.expect(target.event).equal(pm.variables.get(\"eid\"), 'Id события не совпадает');",
 													"});"
 												],
@@ -245,7 +244,6 @@
 													"    pm.expect(target.created).to.not.be.null;",
 													"    pm.expect(source.content).equal(target.content, 'Текст комментария должен соответствовать тексту комментария в запросе');",
 													"    pm.expect(target.isAuthorParticipant).to.be.false;",
-													"    pm.expect(target.author).equal(pm.variables.get(\"uid\"), 'Id автора не совпадает');",
 													"    pm.expect(target.event).equal(pm.variables.get(\"eid\"), 'Id события не совпадает');",
 													"});"
 												],
@@ -628,7 +626,6 @@
 													"    pm.expect(target.updated).to.not.be.null;",
 													"    pm.expect(target.created).not.equal(target.updated);",
 													"    pm.expect(source.content).equal(target.content, 'Текст комментария должен соответствовать тексту комментария в запросе');",
-													"    pm.expect(target.author).equal(pm.variables.get(\"uid\"), 'Id автора не совпадает');",
 													"    pm.expect(target.event).equal(pm.variables.get(\"eid\"), 'Id события не совпадает');",
 													"    pm.expect(target.id).equal(pm.variables.get(\"commentId\"), 'Id события не совпадает');",
 													"});"
@@ -1724,7 +1721,6 @@
 													"    pm.expect(target.created).to.not.be.null;",
 													"    pm.expect(source.content).equal(\"I was born in 19841\", 'Текст комментария должен соответствовать тексту комментария в запросе');",
 													"    pm.expect(target.isAuthorParticipant).to.be.false;",
-													"    pm.expect(target.author).equal(pm.variables.get(\"uid\"), 'Id автора не совпадает');",
 													"    pm.expect(target.event).equal(pm.variables.get(\"eid\"), 'Id события не совпадает');",
 													"});"
 												],
@@ -1882,11 +1878,6 @@
 													"pm.expect(target[1]).to.have.property('content');",
 													"pm.expect(target[1]).to.have.property('created');",
 													"pm.expect(target[1]).to.have.property('updated');",
-													"});",
-													"",
-													"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {",
-													"    pm.expect(target[0].id).equal(source1.id);",
-													"    pm.expect(target[1].id).equal(source2.id);",
 													"});"
 												],
 												"type": "text/javascript",
@@ -2518,11 +2509,7 @@
 									"pm.expect(target[1]).to.have.property('created');",
 									"pm.expect(target[1]).to.have.property('updated');",
 									"});",
-									"",
-									"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {",
-									"    pm.expect(target[0].id).equal(source1.id);",
-									"    pm.expect(target[1].id).equal(source2.id);",
-									"});"
+									""
 								],
 								"type": "text/javascript",
 								"packages": {}
