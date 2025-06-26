@@ -1,11 +1,11 @@
 package ru.practicum.controller.adminAPI;
 
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import ru.practicum.service.CommentService;
 
 @Slf4j
 @RestController
@@ -13,8 +13,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AdminCommentController {
 
+    private final CommentService service;
+
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{commentId}")
-    public void deleteComment(@PathVariable Long commentId) {
-        //TODO: Реализовать эндпоинт
+    public void deleteComment(@PathVariable @Positive Long commentId) {
+        log.info("Deleting comment id={} by admin", commentId);
+        service.deleteCommentByAdmin(commentId);
     }
 }
