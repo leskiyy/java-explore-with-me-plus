@@ -1,5 +1,6 @@
 package ru.practicum.controller.privateAPI;
 
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -19,7 +20,7 @@ public class PrivateCommentUserController {
     private final CommentService service;
 
     @GetMapping
-    public List<CommentWithEventDto> getUsersComment(@PathVariable Long userId,
+    public List<CommentWithEventDto> getUsersComment(@PathVariable @Positive Long userId,
                                                      @RequestParam(defaultValue = "0") Integer from,
                                                      @RequestParam(defaultValue = "10") Integer size) {
         log.info("Getting user's comments userId={}", userId);
@@ -32,7 +33,8 @@ public class PrivateCommentUserController {
 
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteAllUsersComments(@PathVariable Long userId) {
+    public void deleteAllUsersComments(@PathVariable @Positive Long userId) {
+        log.info("Deleting user's comments userId={}", userId);
         service.deleteCommentsByUser(userId);
     }
 

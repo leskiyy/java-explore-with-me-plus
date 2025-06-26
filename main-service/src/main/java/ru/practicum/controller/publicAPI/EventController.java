@@ -1,6 +1,7 @@
 package ru.practicum.controller.publicAPI;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -102,10 +103,11 @@ public class EventController {
     }
 
     @GetMapping("/{eventId}/comments")
-    public List<CommentWithUserDto> getCommentsByEventId(@PathVariable Long eventId,
+    public List<CommentWithUserDto> getCommentsByEventId(@PathVariable @Positive Long eventId,
                                                          @RequestParam(defaultValue = "0") Integer from,
                                                          @RequestParam(defaultValue = "10") Integer size) {
         PageableSearchParam param = PageableSearchParam.builder().size(size).from(from).build();
+        log.info("Returned comments to event id={}", eventId);
         return commentService.getCommentsByEventId(eventId, param.getPageable());
     }
 }

@@ -39,17 +39,20 @@ public class PrivateCommentEventController {
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{commentId}")
-    public void deleteComment(@PathVariable Long userId,
-                              @PathVariable Long eventId,
-                              @PathVariable Long commentId) {
+    public void deleteComment(@PathVariable @Positive Long userId,
+                              @PathVariable @Positive Long eventId,
+                              @PathVariable @Positive Long commentId) {
+        log.info("Deleting comment userId={}, eventId={}, commentId={}", userId, eventId, commentId);
         service.deleteComment(userId, commentId);
     }
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/pre-moderation")
-    public void addPreModeration(@PathVariable Long userId,
-                                 @PathVariable Long eventId,
+    public void addPreModeration(@PathVariable @Positive Long userId,
+                                 @PathVariable @Positive Long eventId,
                                  @RequestBody PreModerationRequest preModerationDto) {
+        log.info("Adding pre moderation to event eventId={}, by userId={}. Forbidden words={}", userId, eventId,
+                preModerationDto.getForbiddenWords());
         service.addPreModeration(userId, eventId, preModerationDto);
     }
 
