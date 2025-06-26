@@ -2,6 +2,7 @@ package ru.practicum.controller.privateAPI;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.comment.CommentWithEventDto;
 import ru.practicum.parameters.PageableSearchParam;
@@ -30,8 +31,9 @@ public class PrivateCommentUserController {
     }
 
     @DeleteMapping
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteAllUsersComments(@PathVariable Long userId) {
-        //TODO: Реализовать эндпоинт
+        service.deleteCommentsByUser(userId);
     }
 
 }

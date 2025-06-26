@@ -50,7 +50,7 @@ public class PrivateCommentEventController {
     public void addPreModeration(@PathVariable Long userId,
                                  @PathVariable Long eventId,
                                  @RequestBody PreModerationRequest preModerationDto) {
-        //TODO: Реализовать эндпоинт Может и лист стрингов вернуь или булеан можно, как будто от в этом немного смысла
+        service.addPreModeration(userId, eventId, preModerationDto);
     }
 
 

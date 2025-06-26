@@ -12,7 +12,9 @@ import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.dto.event.SortSearchParam;
 import ru.practicum.exception.BadRequestException;
+import ru.practicum.parameters.PageableSearchParam;
 import ru.practicum.parameters.PublicSearchParam;
+import ru.practicum.service.CommentService;
 import ru.practicum.service.EventService;
 
 import java.time.LocalDateTime;
@@ -26,6 +28,7 @@ import java.util.List;
 public class EventController {
 
     private final EventService eventService;
+    private final CommentService commentService;
     private final StatsClient statsClient;
 
     @GetMapping
@@ -102,7 +105,7 @@ public class EventController {
     public List<CommentWithUserDto> getCommentsByEventId(@PathVariable Long eventId,
                                                          @RequestParam(defaultValue = "0") Integer from,
                                                          @RequestParam(defaultValue = "10") Integer size) {
-        //TODO: Реализовать эндпоинт
-        return null;
+        PageableSearchParam param = PageableSearchParam.builder().size(size).from(from).build();
+        return commentService.getCommentsByEventId(eventId, param.getPageable());
     }
 }

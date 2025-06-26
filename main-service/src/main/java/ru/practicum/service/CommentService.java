@@ -16,6 +16,7 @@ import ru.practicum.repository.ParticipationRequestRepository;
 import ru.practicum.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -41,15 +42,7 @@ public class CommentService {
         User author = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
-        Set<String> forbiddenWords = event.getForbiddenWords();
-        if (forbiddenWords != null && !forbiddenWords.isEmpty()) {
-            String contentLower = dto.getContent().toLowerCase();
-            boolean hasForbidden = forbiddenWords.stream()
-                    .anyMatch(word -> contentLower.contains(word.toLowerCase()));
-            if (hasForbidden) {
-                throw new ForbiddenException("Комментарий содержит запрещённые слова");
-            }
-        }
+        validateContent(dto.getContent(), event.getForbiddenWords());
 
         Comment comment = new Comment();
         comment.setEvent(event);
@@ -68,13 +61,19 @@ public class CommentService {
         return response;
     }
 
+
+    @Transactional
     public void addPreModeration(Long userId, Long eventId, PreModerationRequest preModerationDto) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Событие не найдено"));
         if (!event.getInitiator().getId().equals(userId)) {
             throw new ForbiddenException("Только инициатор события может устанавливать премодерацию");
         }
-        event.setForbiddenWords(preModerationDto.getForbiddenWords());
+        if (event.getForbiddenWords() == null) {
+            event.setForbiddenWords(preModerationDto.getForbiddenWords());
+        } else {
+            event.getForbiddenWords().addAll(preModerationDto.getForbiddenWords());
+        }
         eventRepository.save(event);
     }
 
@@ -92,15 +91,7 @@ public class CommentService {
             throw new ForbiddenException("Редактировать можно только свои комментарии");
         }
 
-        Set<String> forbiddenWords = comment.getEvent().getForbiddenWords();
-        if (forbiddenWords != null && !forbiddenWords.isEmpty()) {
-            String contentLower = dto.getContent().toLowerCase();
-            boolean hasForbidden = forbiddenWords.stream()
-                    .anyMatch(word -> contentLower.contains(word.toLowerCase()));
-            if (hasForbidden) {
-                throw new ForbiddenException("Комментарий содержит запрещённые слова");
-            }
-        }
+        validateContent(dto.getContent(), comment.getEvent().getForbiddenWords());
 
         comment.setContent(dto.getContent());
         comment.setUpdated(LocalDateTime.now());
@@ -140,13 +131,22 @@ public class CommentService {
         commentRepository.delete(comment);
     }
 
+    @Transactional
     public void deleteCommentsByUser(Long userId) {
         commentRepository.deleteByAuthorId(userId);
     }
 
+    @Transactional
     public void deleteCommentByAdmin(Long commentId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new NotFoundException("Комментарий не найден"));
         commentRepository.delete(comment);
+    }
+
+    private static void validateContent(String content, Set<String> forbiddenWords) {
+        boolean hasForbidden = Arrays.stream(content.split(" ")).anyMatch(forbiddenWords::contains);
+        if (hasForbidden) {
+            throw new ForbiddenException("Комментарий содержит запрещённые слова");
+        }
     }
 }
