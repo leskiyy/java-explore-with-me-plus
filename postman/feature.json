@@ -246,7 +246,7 @@
 													"    pm.expect(source.content.toString()).equal(target.content, 'Текст комментария должен соответствовать тексту комментария в запросе');",
 													"    pm.expect(target.author.toString()).equal(pm.variables.get(\"uid\").toString(), 'Id автора не совпадает');",
 													"    pm.expect(target.isAuthorParticipant).to.be.false;",
-													"    pm.expect(target.event).equal(pm.variables.get(\"eid\"), 'Id события не совпадает');",
+													"    pm.expect(target.event.toString()).equal(pm.variables.get(\"eid\").toString(), 'Id события не совпадает');",
 													"});"
 												],
 												"type": "text/javascript",
@@ -630,7 +630,7 @@
 													"    pm.expect(source.content).equal(target.content, 'Текст комментария должен соответствовать тексту комментария в запросе');",
 													"    pm.expect(target.author.toString()).equal(pm.variables.get(\"uid\").toString(), 'Id автора не совпадает');",
 													"    pm.expect(target.event.toString()).equal(pm.variables.get(\"eid\").toString(), 'Id события не совпадает');",
-													"    pm.expect(target.id).equal(pm.variables.get(\"commentId\"), 'Id события не совпадает');",
+													"    pm.expect(target.id.toString()).equal(pm.variables.get(\"commentId\").toString(), 'Id комментария не совпадает');",
 													"});"
 												],
 												"type": "text/javascript",
