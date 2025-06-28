@@ -11,10 +11,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import ru.practicum.dto.ApiError;
 import ru.practicum.exception.BadRequestException;
 import ru.practicum.exception.ConflictException;
+import ru.practicum.exception.ForbiddenException;
 import ru.practicum.exception.NotFoundException;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 
 @Slf4j
 @ControllerAdvice
@@ -26,7 +26,6 @@ public class ErrorHandler {
         String notFoundReason = "The required object was not found.";
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiError.builder()
                 .status(HttpStatus.NOT_FOUND.toString())
-                .errors(Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).toList())
                 .reason(notFoundReason)
                 .message(e.getMessage())
                 .timestamp(LocalDateTime.now())
@@ -39,7 +38,6 @@ public class ErrorHandler {
         String conflictReason = "Integrity constraint has been violated.";
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiError.builder()
                 .status(HttpStatus.CONFLICT.toString())
-                .errors(Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).toList())
                 .reason(conflictReason)
                 .message(e.getMessage())
                 .timestamp(LocalDateTime.now())
@@ -53,8 +51,20 @@ public class ErrorHandler {
         return ResponseEntity.badRequest()
                 .body(ApiError.builder()
                         .status(HttpStatus.BAD_REQUEST.toString())
-                        .errors(Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).toList())
                         .reason(badRequestReason)
+                        .message(e.getMessage())
+                        .timestamp(LocalDateTime.now())
+                        .build());
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ApiError> handleForbidden(ForbiddenException e) {
+        log.info("403 {}", e.getMessage());
+        String forbiddenReason = "Access denied.";
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiError.builder()
+                        .status(HttpStatus.FORBIDDEN.toString())
+                        .reason(forbiddenReason)
                         .message(e.getMessage())
                         .timestamp(LocalDateTime.now())
                         .build());

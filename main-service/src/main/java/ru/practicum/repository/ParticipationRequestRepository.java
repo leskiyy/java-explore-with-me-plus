@@ -34,4 +34,6 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
 
     @EntityGraph(attributePaths = {"requester", "event"})
     List<ParticipationRequest> findAllByEventId(Long eventId);
+
+    boolean existsByRequester_IdAndEvent_IdAndStatus(Long id, Long id1, RequestStatus status);
 }

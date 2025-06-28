@@ -76,3 +76,31 @@ CREATE TABLE IF NOT EXISTS public.participation_request (
         CHECK (status IN ('PENDING', 'CONFIRMED', 'REJECTED', 'CANCELED')),
     CONSTRAINT unique_request UNIQUE (requester_id, event_id)
 );
+
+
+CREATE TABLE IF NOT EXISTS public.comment (
+	id BIGSERIAL PRIMARY KEY,
+	event_id BIGINT NOT NULL,
+	author_id BIGINT,
+	content TEXT NOT NULL,
+	created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	CONSTRAINT comment_event_fk FOREIGN KEY (event_id)
+		REFERENCES public."event"(id)
+		ON DELETE CASCADE,
+	CONSTRAINT comment_users_fk
+		FOREIGN KEY (author_id)
+		REFERENCES public.users(id)
+		ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.comment_pre_moderation (
+	event_id BIGSERIAL NOT NULL,
+	forbidden_word varchar(32) NOT NULL,
+	CONSTRAINT comment_pre_moderation_pkey
+		PRIMARY KEY (event_id, forbidden_word),
+	CONSTRAINT comment_pre_moderation_event_fk
+		FOREIGN KEY (event_id)
+		REFERENCES public.event (id)
+		ON DELETE CASCADE
+);

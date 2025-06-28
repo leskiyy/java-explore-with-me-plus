@@ -14,6 +14,7 @@ import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.dto.event.Location;
 import ru.practicum.dto.user.UserShortDto;
 import ru.practicum.entity.EventState;
+import ru.practicum.service.CommentService;
 import ru.practicum.service.EventService;
 
 import java.time.LocalDateTime;
@@ -33,6 +34,9 @@ public class EventControllerTest {
 
     @MockBean
     private EventService eventService;
+
+    @MockBean
+    private CommentService commentService;
 
     @MockBean
     private StatsClient statsClient;

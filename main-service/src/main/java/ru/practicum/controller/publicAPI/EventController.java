@@ -1,17 +1,21 @@
 package ru.practicum.controller.publicAPI;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.client.StatsClient;
 import ru.practicum.dto.HitDto;
+import ru.practicum.dto.comment.CommentWithUserDto;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.dto.event.SortSearchParam;
 import ru.practicum.exception.BadRequestException;
+import ru.practicum.parameters.PageableSearchParam;
 import ru.practicum.parameters.PublicSearchParam;
+import ru.practicum.service.CommentService;
 import ru.practicum.service.EventService;
 
 import java.time.LocalDateTime;
@@ -25,6 +29,7 @@ import java.util.List;
 public class EventController {
 
     private final EventService eventService;
+    private final CommentService commentService;
     private final StatsClient statsClient;
 
     @GetMapping
@@ -95,5 +100,14 @@ public class EventController {
         EventFullDto event = eventService.getEventById(id);
         log.info("Returned event {} for GET /events/{}", event.getId(), id);
         return event;
+    }
+
+    @GetMapping("/{eventId}/comments")
+    public List<CommentWithUserDto> getCommentsByEventId(@PathVariable @Positive Long eventId,
+                                                         @RequestParam(defaultValue = "0") Integer from,
+                                                         @RequestParam(defaultValue = "10") Integer size) {
+        PageableSearchParam param = PageableSearchParam.builder().size(size).from(from).build();
+        log.info("Returned comments to event id={}", eventId);
+        return commentService.getCommentsByEventId(eventId, param.getPageable());
     }
 }
